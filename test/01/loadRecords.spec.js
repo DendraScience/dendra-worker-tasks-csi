@@ -13,6 +13,7 @@ describe('loadRecords tasks', function () {
   const model = {
     $app: main.app,
     _id: 'loadRecords',
+    private: {},
     props: {},
     state: {
       _id: 'taskMachine-loadRecords-current',
@@ -42,7 +43,7 @@ describe('loadRecords tasks', function () {
   let machine
 
   after(function () {
-     return model.client && model.client.isConnected && model.client.disconnect()
+     return model.private.client && model.private.client.isConnected && model.private.client.disconnect()
   })
 
   it('should import', function () {
@@ -92,7 +93,7 @@ describe('loadRecords tasks', function () {
       if (response.statusCode !== 200) throw new Error(`Non-success status code ${response.statusCode}`)
       return JSON.parse(response.body)
     }).then(body => {
-      expect(body.results).to.have.lengthOf.at.least(1)
+      expect(body).to.have.nested.property('results.0.series.0.values.0.0')
     })
   })
 
@@ -135,6 +136,8 @@ describe('loadRecords tasks', function () {
   })
 
   it('should load Blue Oak Status for 5 seconds', function () {
+    console.log(util.inspect(model))
+
     return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
       const requestOpts = {
         method: 'POST',
@@ -151,7 +154,7 @@ describe('loadRecords tasks', function () {
       if (response.statusCode !== 200) throw new Error(`Non-success status code ${response.statusCode}`)
       return JSON.parse(response.body)
     }).then(body => {
-      expect(body.results).to.have.lengthOf.at.least(1)
+      expect(body).to.have.nested.property('results.0.series.0.values.0.0')
     })
   })
 })

@@ -11,6 +11,7 @@ describe('archiveRecords tasks', function () {
   const model = {
     $app: main.app,
     _id: 'archiveRecords',
+    private: {},
     props: {},
     state: {
       _id: 'taskMachine-archiveRecords-current',
@@ -35,7 +36,7 @@ describe('archiveRecords tasks', function () {
   let machine
 
   after(function () {
-     return model.client && model.client.isConnected && model.client.disconnect()
+     return model.private.client && model.private.client.isConnected && model.private.client.disconnect()
   })
 
   it('should import', function () {

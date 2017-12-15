@@ -47,14 +47,14 @@ function handleRecord(rec) {
 exports.default = {
   client: {
     guard(m) {
-      return !m.clientError && !m.client;
+      return !m.clientError && !m.private.client;
     },
     execute(m) {
       return new ldmp.LDMPClient(m.$app.get('clients').ldmp);
     },
     assign(m, res) {
-      m.client = res;
-      m.client.on('record', handleRecord.bind({
+      m.private.client = res;
+      m.private.client.on('record', handleRecord.bind({
         client: res,
         documentService: m.$app.get('connections').jsonArchive.app.service('/documents'),
         log: m.$app.logger,

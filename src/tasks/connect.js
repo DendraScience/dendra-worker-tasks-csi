@@ -1,16 +1,16 @@
 export default {
   guard (m) {
     return !m.connectError &&
-      m.client && !m.client.isConnected &&
+      m.private.client && !m.private.client.isConnected &&
       (m.connectStateAt !== m.state.updated_at)
   },
   execute (m) {
     return Promise.race([
-      m.client.connect(),
+      m.private.client.connect(),
       // NOTE: Hardcoded 20 second timeout
       new Promise((resolve, reject) => setTimeout(reject, 20000, new Error('Connect timeout')))
     ]).catch(err => {
-      if (m.client.socket) m.client.socket.destroy()
+      if (m.private.client.socket) m.private.client.socket.destroy()
       throw err
     })
   },
