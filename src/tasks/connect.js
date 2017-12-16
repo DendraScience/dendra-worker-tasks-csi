@@ -2,7 +2,7 @@ export default {
   guard (m) {
     return !m.connectError &&
       m.private.client && !m.private.client.isConnected &&
-      (m.connectStateAt !== m.state.updated_at)
+      (m.connectStateAt !== m.state.created_at)
   },
   execute (m) {
     return Promise.race([
@@ -15,6 +15,6 @@ export default {
     })
   },
   assign (m) {
-    m.connectStateAt = m.state.updated_at
+    m.connectStateAt = m.state.created_at
   }
 }

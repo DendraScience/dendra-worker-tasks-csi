@@ -10,6 +10,7 @@ describe('loadRecords tasks', function () {
 
   const influxUrl = main.app.get('apis').influxDB.url
   const jsonArchive = main.app.get('connections').jsonArchive
+  const now = new Date()
   const model = {
     $app: main.app,
     _id: 'loadRecords',
@@ -35,7 +36,8 @@ describe('loadRecords tasks', function () {
           }
         }
       ],
-      updated_at: new Date()
+      created_at: now,
+      updated_at: now
     }
   }
 
@@ -98,6 +100,8 @@ describe('loadRecords tasks', function () {
   })
 
   it('should reconfig for Blue Oak Status', function () {
+    const now = new Date()
+
     model.scratch = {}
     model.state = {
       _id: 'taskMachine-loadRecords-current',
@@ -119,7 +123,8 @@ describe('loadRecords tasks', function () {
           }
         }
       ],
-      updated_at: new Date()
+      created_at: now,
+      updated_at: now
     }
 
     return machine.clear().start().then(success => {
@@ -136,8 +141,6 @@ describe('loadRecords tasks', function () {
   })
 
   it('should load Blue Oak Status for 5 seconds', function () {
-    console.log(util.inspect(model))
-
     return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
       const requestOpts = {
         method: 'POST',

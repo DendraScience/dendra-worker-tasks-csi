@@ -7,9 +7,8 @@ function handleRecord (rec) {
   if (!(rec && rec.recordNumber)) return
 
   const m = this.model
-  const updatedAt = m.state.updated_at
 
-  if (m.specifyStateAt !== updatedAt) {
+  if (m.specifyStateAt !== m.state.created_at) {
     this.log.info(`Deferring record ${rec.recordNumber}`)
     return
   }
@@ -93,8 +92,8 @@ export default {
   database: {
     guard (m) {
       return !m.databaseError &&
-        (m.sourcesStateAt === m.state.updated_at) &&
-        (m.databaseStateAt !== m.state.updated_at)
+        (m.sourcesStateAt === m.state.created_at) &&
+        (m.databaseStateAt !== m.state.created_at)
     },
     execute (m) {
       const influxUrl = m.$app.get('apis').influxDB.url
@@ -116,7 +115,7 @@ export default {
       })
     },
     assign (m) {
-      m.databaseStateAt = m.state.updated_at
+      m.databaseStateAt = m.state.created_at
     }
   },
 
@@ -126,7 +125,7 @@ export default {
     guard (m) {
       return !m.sourcesError &&
         m.state.sources && (m.state.sources.length > 0) &&
-        (m.sourcesStateAt !== m.state.updated_at)
+        (m.sourcesStateAt !== m.state.created_at)
     },
     execute () { return true },
     assign (m) {
@@ -157,15 +156,15 @@ export default {
         return sources
       }, {})
 
-      m.sourcesStateAt = m.state.updated_at
+      m.sourcesStateAt = m.state.created_at
     }
   },
 
   specs: {
     guard (m) {
       return !m.specsError &&
-        (m.databaseStateAt === m.state.updated_at) &&
-        (m.specsStateAt !== m.state.updated_at)
+        (m.databaseStateAt === m.state.created_at) &&
+        (m.specsStateAt !== m.state.created_at)
     },
     async execute (m) {
       const influxUrl = m.$app.get('apis').influxDB.url
@@ -210,7 +209,7 @@ export default {
     },
     assign (m, res) {
       m.specs = res
-      m.specsStateAt = m.state.updated_at
+      m.specsStateAt = m.state.created_at
     }
   },
 

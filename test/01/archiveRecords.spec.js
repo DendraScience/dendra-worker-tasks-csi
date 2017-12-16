@@ -8,6 +8,7 @@ describe('archiveRecords tasks', function () {
   this.timeout(60000)
 
   const jsonArchive = main.app.get('connections').jsonArchive
+  const now = new Date()
   const model = {
     $app: main.app,
     _id: 'archiveRecords',
@@ -28,7 +29,8 @@ describe('archiveRecords tasks', function () {
           }
         }
       ],
-      updated_at: new Date()
+      created_at: now,
+      updated_at: now
     }
   }
 
@@ -82,6 +84,8 @@ describe('archiveRecords tasks', function () {
   })
 
   it('should reconfig for Blue Oak Status', function () {
+    const now = new Date()
+
     model.scratch = {}
     model.state = {
       _id: 'taskMachine-archiveRecords-current',
@@ -98,7 +102,8 @@ describe('archiveRecords tasks', function () {
           }
         }
       ],
-      updated_at: new Date()
+      created_at: now,
+      updated_at: now
     }
 
     return machine.clear().start().then(success => {
