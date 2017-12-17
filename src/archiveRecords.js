@@ -7,7 +7,7 @@ function handleRecord (rec) {
 
   const m = this.model
 
-  if (m.specifyStateAt !== m.state.created_at) {
+  if (m.specifyStateAt !== m.stateAt) {
     this.log.info(`Deferring record ${rec.recordNumber}`)
     return
   }
@@ -65,7 +65,7 @@ export default {
     guard (m) {
       return !m.sourcesError &&
         m.state.sources && (m.state.sources.length > 0) &&
-        (m.sourcesStateAt !== m.state.created_at)
+        (m.sourcesStateAt !== m.stateAt)
     },
     execute () { return true },
     assign (m) {
@@ -83,15 +83,15 @@ export default {
         return sources
       }, {})
 
-      m.sourcesStateAt = m.state.created_at
+      m.sourcesStateAt = m.stateAt
     }
   },
 
   specs: {
     guard (m) {
       return !m.specsError &&
-        (m.sourcesStateAt === m.state.created_at) &&
-        (m.specsStateAt !== m.state.created_at)
+        (m.sourcesStateAt === m.stateAt) &&
+        (m.specsStateAt !== m.stateAt)
     },
     execute (m) {
       const specs = []
@@ -118,15 +118,16 @@ export default {
     },
     assign (m, res) {
       m.specs = res
-      m.specsStateAt = m.state.created_at
+      m.specsStateAt = m.stateAt
     }
   },
 
   specify: require('./tasks/specify').default,
+  stateAt: require('./tasks/stateAt').default,
 
-  stamps: {
+  stateStamps: {
     guard (m) {
-      return !m.stampsReady
+      return !m.stateStampsReady
     },
     execute () { return true },
     assign (m) {

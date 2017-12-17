@@ -16,7 +16,7 @@ function handleRecord(rec) {
 
   const m = this.model;
 
-  if (m.specifyStateAt !== m.state.created_at) {
+  if (m.specifyStateAt !== m.stateAt) {
     this.log.info(`Deferring record ${rec.recordNumber}`);
     return;
   }
@@ -99,7 +99,7 @@ exports.default = {
 
   database: {
     guard(m) {
-      return !m.databaseError && m.sourcesStateAt === m.state.created_at && m.databaseStateAt !== m.state.created_at;
+      return !m.databaseError && m.sourcesStateAt === m.stateAt && m.databaseStateAt !== m.stateAt;
     },
     execute(m) {
       const influxUrl = m.$app.get('apis').influxDB.url;
@@ -121,7 +121,7 @@ exports.default = {
       });
     },
     assign(m) {
-      m.databaseStateAt = m.state.created_at;
+      m.databaseStateAt = m.stateAt;
     }
   },
 
@@ -129,7 +129,7 @@ exports.default = {
 
   sources: {
     guard(m) {
-      return !m.sourcesError && m.state.sources && m.state.sources.length > 0 && m.sourcesStateAt !== m.state.created_at;
+      return !m.sourcesError && m.state.sources && m.state.sources.length > 0 && m.sourcesStateAt !== m.stateAt;
     },
     execute() {
       return true;
@@ -162,13 +162,13 @@ exports.default = {
         return sources;
       }, {});
 
-      m.sourcesStateAt = m.state.created_at;
+      m.sourcesStateAt = m.stateAt;
     }
   },
 
   specs: {
     guard(m) {
-      return !m.specsError && m.databaseStateAt === m.state.created_at && m.specsStateAt !== m.state.created_at;
+      return !m.specsError && m.databaseStateAt === m.stateAt && m.specsStateAt !== m.stateAt;
     },
     execute(m) {
       return _asyncToGenerator(function* () {
@@ -217,9 +217,10 @@ exports.default = {
     },
     assign(m, res) {
       m.specs = res;
-      m.specsStateAt = m.state.created_at;
+      m.specsStateAt = m.stateAt;
     }
   },
 
-  specify: require('./tasks/specify').default
+  specify: require('./tasks/specify').default,
+  stateAt: require('./tasks/stateAt').default
 };

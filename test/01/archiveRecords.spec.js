@@ -67,7 +67,7 @@ describe('archiveRecords tasks', function () {
       expect(machine.model).to.have.property('sourcesReady', true)
       expect(machine.model).to.have.property('specsReady', true)
       expect(machine.model).to.have.property('specifyReady', true)
-      expect(machine.model).to.have.property('stampsReady', true)
+      expect(machine.model).to.have.property('stateStampsReady', true)
     })
   })
 
@@ -115,7 +115,7 @@ describe('archiveRecords tasks', function () {
       expect(machine.model).to.have.property('sourcesReady', true)
       expect(machine.model).to.have.property('specsReady', true)
       expect(machine.model).to.have.property('specifyReady', true)
-      expect(machine.model).to.have.property('stampsReady', true)
+      expect(machine.model).to.have.property('stateStampsReady', true)
     })
   })
 

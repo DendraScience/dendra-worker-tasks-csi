@@ -2,8 +2,8 @@ export default {
   guard (m) {
     return !m.connectError &&
       m.private.client && !m.private.client.isConnected &&
-      (m.specsStateAt === m.state.created_at) &&
-      (m.connectStateAt !== m.state.created_at)
+      (m.specsStateAt === m.stateAt) &&
+      (m.connectStateAt !== m.stateAt)
   },
   execute (m) {
     return Promise.race([
@@ -16,6 +16,6 @@ export default {
     })
   },
   assign (m) {
-    m.connectStateAt = m.state.created_at
+    m.connectStateAt = m.stateAt
   }
 }
