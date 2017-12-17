@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = {
   guard(m) {
-    return !m.connectError && m.private.client && !m.private.client.isConnected && m.connectStateAt !== m.state.created_at;
+    return !m.connectError && m.private.client && !m.private.client.isConnected && m.specsStateAt === m.state.created_at && m.connectStateAt !== m.state.created_at;
   },
   execute(m) {
     return Promise.race([m.private.client.connect(),

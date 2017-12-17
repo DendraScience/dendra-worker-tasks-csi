@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = {
   guard(m) {
-    return !m.specifyError && m.private.client && m.private.client.isConnected && m.connectStateAt === m.state.created_at && m.specsStateAt === m.state.created_at && m.specifyStateAt !== m.state.created_at;
+    return !m.specifyError && m.private.client && m.private.client.isConnected && m.connectStateAt === m.state.created_at && m.specifyStateAt !== m.state.created_at;
   },
   execute(m) {
     return m.private.client.specify(m.specs);

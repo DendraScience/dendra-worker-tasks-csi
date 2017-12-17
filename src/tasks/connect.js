@@ -2,6 +2,7 @@ export default {
   guard (m) {
     return !m.connectError &&
       m.private.client && !m.private.client.isConnected &&
+      (m.specsStateAt === m.state.created_at) &&
       (m.connectStateAt !== m.state.created_at)
   },
   execute (m) {
