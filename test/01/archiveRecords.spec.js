@@ -11,7 +11,7 @@ describe('archiveRecords tasks', function () {
   const now = new Date()
   const model = {
     $app: main.app,
-    _id: 'archiveRecords',
+    key: 'archiveRecords',
     private: {},
     props: {},
     state: {
@@ -38,7 +38,7 @@ describe('archiveRecords tasks', function () {
   let machine
 
   after(function () {
-     return model.private.client && model.private.client.isConnected && model.private.client.disconnect()
+     return model.private.client && model.private.client.disconnect()
   })
 
   it('should import', function () {

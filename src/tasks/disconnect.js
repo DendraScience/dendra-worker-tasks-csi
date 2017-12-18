@@ -5,6 +5,14 @@ export default {
       (m.connectStateAt !== m.stateAt)
   },
   execute (m) {
-    return m.private.client.disconnect().then(() => true)
+    const log = m.$app.logger
+    const client = m.private.client
+
+    log.info(`Mach [${m.key}]: Disconnecting`)
+
+    return client.disconnect().catch(err => {
+      log.error(`Mach [${m.key}]: ${err.message}`)
+      throw err
+    })
   }
 }

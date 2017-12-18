@@ -8,14 +8,14 @@ function handleRecord (rec) {
   const m = this.model
 
   if (m.specifyStateAt !== m.stateAt) {
-    this.log.info(`Deferring record ${rec.recordNumber}`)
+    this.log.info(`Mach [${m.key}]: Deferring record ${rec.recordNumber}`)
     return
   }
 
   const recordDate = moment(rec.timeString).utcOffset(0, true).utc()
 
   if (!recordDate) {
-    this.log.error(`Invalid time format for record ${rec.recordNumber}`)
+    this.log.error(`Mach [${m.key}]: Invalid time format for record ${rec.recordNumber}`)
     return
   }
 
@@ -34,7 +34,7 @@ function handleRecord (rec) {
     if (!m.stamps) m.stamps = {}
     m.stamps[sourceKey] = recordDate.valueOf()
   }).catch(err => {
-    this.log.error(err)
+    this.log.error(`Mach [${m.key}]: ${err.message}`)
   })
 }
 
@@ -47,6 +47,10 @@ export default {
       return new ldmp.LDMPClient(m.$app.get('clients').ldmp)
     },
     assign (m, res) {
+      const log = m.$app.logger
+
+      log.info(`Mach [${m.key}]: Client ready`)
+
       m.private.client = res
       m.private.client.on('record', handleRecord.bind({
         client: res,
@@ -59,6 +63,8 @@ export default {
 
   connect: require('./tasks/connect').default,
 
+  connectReset: require('./tasks/connectReset').default,
+
   disconnect: require('./tasks/disconnect').default,
 
   sources: {
@@ -69,6 +75,10 @@ export default {
     },
     execute () { return true },
     assign (m) {
+      const log = m.$app.logger
+
+      log.info(`Mach [${m.key}]: Sources ready`)
+
       m.sources = m.state.sources.reduce((sources, src) => {
         if (src.station && src.table) {
           const sourceKey = `${src.station} ${src.table}`
@@ -117,12 +127,17 @@ export default {
       return specs
     },
     assign (m, res) {
+      const log = m.$app.logger
+
+      log.info(`Mach [${m.key}]: Specs ready`)
+
       m.specs = res
       m.specsStateAt = m.stateAt
     }
   },
 
   specify: require('./tasks/specify').default,
+
   stateAt: require('./tasks/stateAt').default,
 
   stateStamps: {

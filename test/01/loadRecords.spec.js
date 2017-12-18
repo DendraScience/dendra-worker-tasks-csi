@@ -13,7 +13,7 @@ describe('loadRecords tasks', function () {
   const now = new Date()
   const model = {
     $app: main.app,
-    _id: 'loadRecords',
+    key: 'loadRecords',
     private: {},
     props: {},
     state: {
@@ -45,7 +45,7 @@ describe('loadRecords tasks', function () {
   let machine
 
   after(function () {
-     return model.private.client && model.private.client.isConnected && model.private.client.disconnect()
+     return model.private.client && model.private.client.disconnect()
   })
 
   it('should import', function () {

@@ -9,14 +9,14 @@ function handleRecord (rec) {
   const m = this.model
 
   if (m.specifyStateAt !== m.stateAt) {
-    this.log.info(`Deferring record ${rec.recordNumber}`)
+    this.log.info(`Mach [${m.key}]: Deferring record ${rec.recordNumber}`)
     return
   }
 
   const recordDate = moment(rec.timeString).utcOffset(0, true).utc()
 
   if (!recordDate) {
-    this.log.error(`Invalid time format for record ${rec.recordNumber}`)
+    this.log.error(`Mach [${m.key}]: Invalid time format for record ${rec.recordNumber}`)
     return
   }
 
@@ -24,7 +24,7 @@ function handleRecord (rec) {
   const source = m.sources[sourceKey]
 
   if (!source) {
-    this.log.error(`No source found for '${sourceKey}'`)
+    this.log.error(`Mach [${m.key}]: No source found for '${sourceKey}'`)
     return
   }
 
@@ -40,7 +40,7 @@ function handleRecord (rec) {
   })
 
   if (fieldSet.length === 0) {
-    this.log.error(`Nothing to write for record ${rec.recordNumber}`)
+    this.log.error(`Mach [${m.key}]: Nothing to write for record ${rec.recordNumber}`)
     return
   }
 
@@ -64,7 +64,7 @@ function handleRecord (rec) {
 
     return this.client.ack()
   }).catch(err => {
-    this.log.error(err)
+    this.log.error(`Mach [${m.key}]: ${err.message}`)
   })
 }
 
@@ -77,6 +77,10 @@ export default {
       return new ldmp.LDMPClient(m.$app.get('clients').ldmp)
     },
     assign (m, res) {
+      const log = m.$app.logger
+
+      log.info(`Mach [${m.key}]: Client ready`)
+
       m.private.client = res
       m.private.client.on('record', handleRecord.bind({
         client: res,
@@ -89,6 +93,8 @@ export default {
 
   connect: require('./tasks/connect').default,
 
+  connectReset: require('./tasks/connectReset').default,
+
   database: {
     guard (m) {
       return !m.databaseError &&
@@ -96,6 +102,7 @@ export default {
         (m.databaseStateAt !== m.stateAt)
     },
     execute (m) {
+      const log = m.$app.logger
       const influxUrl = m.$app.get('apis').influxDB.url
       const databases = [...new Set(Object.keys(m.sources).map(key => m.sources[key].load.database))]
       const requestOpts = {
@@ -106,12 +113,17 @@ export default {
         url: `${influxUrl}/query`
       }
 
+      log.info(`Mach [${m.key}]: Creating database(s): ${databases.join(', ')}`)
+
       return new Promise((resolve, reject) => {
         request(requestOpts, (err, response) => err ? reject(err) : resolve(response))
       }).then(response => {
         if (response.statusCode !== 200) throw new Error(`Non-success status code ${response.statusCode}`)
 
         return true
+      }).catch(err => {
+        log.error(`Mach [${m.key}]: ${err.message}`)
+        throw err
       })
     },
     assign (m) {
@@ -129,6 +141,10 @@ export default {
     },
     execute () { return true },
     assign (m) {
+      const log = m.$app.logger
+
+      log.info(`Mach [${m.key}]: Sources ready`)
+
       m.sources = m.state.sources.reduce((sources, src) => {
         if (src.station && src.table && src.load && src.load.database && src.load.measurement) {
           const sourceKey = `${src.station} ${src.table}`
@@ -208,11 +224,16 @@ export default {
       return specs
     },
     assign (m, res) {
+      const log = m.$app.logger
+
+      log.info(`Mach [${m.key}]: Specs ready`)
+
       m.specs = res
       m.specsStateAt = m.stateAt
     }
   },
 
   specify: require('./tasks/specify').default,
+
   stateAt: require('./tasks/stateAt').default
 }
