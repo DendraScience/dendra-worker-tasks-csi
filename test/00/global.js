@@ -17,6 +17,7 @@ app.logger = console
 
 app.set('clients', {
   ldmp: {
+    host: '128.32.109.75',
     port: 1024
   }
 })

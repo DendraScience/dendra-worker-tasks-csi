@@ -3,39 +3,50 @@ const moment = require('moment')
 const {MomentEditor} = require('@dendra-science/utils-moment')
 
 function handleRecord (rec) {
-  if (!(rec && rec.recordNumber)) return
+  if (!rec) return
 
   const m = this.model
+  const recNbr = rec.recordNumber
 
-  if (m.specifyStateAt !== m.stateAt) {
-    this.log.info(`Mach [${m.key}]: Deferring record ${rec.recordNumber}`)
-    return
+  try {
+    //
+    // Begin standard record validation
+    // TODO: Move to helper
+    if (typeof recNbr === 'undefined') throw new Error('Record number undefined')
+
+    if (m.specifyStateAt !== m.stateAt) {
+      this.log.info(`Mach [${m.key}] Rec [${recNbr}: Deferring`)
+      return
+    }
+
+    const recordDate = moment(rec.timeString).utcOffset(0, true).utc()
+
+    if (!(recordDate && recordDate.isValid())) throw new Error('Invalid time format')
+
+    const sourceKey = `${rec.station} ${rec.table}`
+    const source = m.sources[sourceKey]
+
+    if (!source) throw new Error(`No source found for '${sourceKey}'`)
+    // End standard record validation
+    //
+
+    const archiveDate = source.timeEditor ? source.timeEditor.edit(recordDate) : recordDate
+    const id = `csi-${rec.station}-${rec.table}-${archiveDate.format('YYYY-MM-DD-HH-mm')}`
+
+    this.documentService.create({
+      _id: id,
+      content: rec
+    }).then(() => {
+      return this.client.ack()
+    }).then(() => {
+      if (!m.stamps) m.stamps = {}
+      m.stamps[sourceKey] = recordDate.valueOf()
+    }).catch(err => {
+      this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err.message}`)
+    })
+  } catch (err) {
+    this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err.message}`)
   }
-
-  const recordDate = moment(rec.timeString).utcOffset(0, true).utc()
-
-  if (!recordDate) {
-    this.log.error(`Mach [${m.key}]: Invalid time format for record ${rec.recordNumber}`)
-    return
-  }
-
-  const sourceKey = `${rec.station} ${rec.table}`
-  const source = m.sources[sourceKey]
-
-  const archiveDate = source.timeEditor ? source.timeEditor.edit(recordDate) : recordDate
-  const id = `csi-${rec.station}-${rec.table}-${archiveDate.format('YYYY-MM-DD-HH-mm')}`
-
-  this.documentService.create({
-    _id: id,
-    content: rec
-  }).then(() => {
-    return this.client.ack()
-  }).then(() => {
-    if (!m.stamps) m.stamps = {}
-    m.stamps[sourceKey] = recordDate.valueOf()
-  }).catch(err => {
-    this.log.error(`Mach [${m.key}]: ${err.message}`)
-  })
 }
 
 export default {

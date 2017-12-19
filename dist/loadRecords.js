@@ -12,68 +12,73 @@ const request = require('request');
 const { MomentEditor } = require('@dendra-science/utils-moment');
 
 function handleRecord(rec) {
-  if (!(rec && rec.recordNumber)) return;
+  if (!rec) return;
 
   const m = this.model;
+  const recNbr = rec.recordNumber;
 
-  if (m.specifyStateAt !== m.stateAt) {
-    this.log.info(`Mach [${m.key}]: Deferring record ${rec.recordNumber}`);
-    return;
+  try {
+    //
+    // Begin standard record validation
+    // TODO: Move to helper
+    if (typeof recNbr === 'undefined') throw new Error('Record number undefined');
+
+    if (m.specifyStateAt !== m.stateAt) {
+      this.log.info(`Mach [${m.key}] Rec [${recNbr}: Deferring`);
+      return;
+    }
+
+    const recordDate = moment(rec.timeString).utcOffset(0, true).utc();
+
+    if (!(recordDate && recordDate.isValid())) throw new Error('Invalid time format');
+
+    const sourceKey = `${rec.station} ${rec.table}`;
+    const source = m.sources[sourceKey];
+
+    if (!source) throw new Error(`No source found for '${sourceKey}'`);
+    // End standard record validation
+    //
+
+    // Allow for static fields to be specified for every point
+    const row = Object.assign({}, source.load.fields, rec.fields && rec.fields.reduce((obj, field) => {
+      if (field.name) obj[field.name.replace(/\W+/g, '_')] = field.value;
+      return obj;
+    }, {}));
+    const fieldSet = Object.keys(row).filter(key => {
+      return typeof row[key] === 'number' && !Number.isNaN(row[key]);
+    }).map(key => {
+      return `${key}=${row[key]}`;
+    });
+
+    if (fieldSet.length === 0) throw new Error('Nothing to write');
+
+    const time = source.timeEditor ? source.timeEditor.edit(recordDate).valueOf() : recordDate.valueOf();
+    const buf = Buffer.from(`${source.measurementTagSet} ${fieldSet.join(',')} ${time}\n`);
+
+    const requestOpts = {
+      body: buf,
+      method: 'POST',
+      qs: {
+        db: source.load.database,
+        precision: 'ms'
+      },
+      url: `${this.influxUrl}/write`
+    };
+
+    request(requestOpts, (err, response) => {
+      if (err) {
+        this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err.message}`);
+      } else if (response.statusCode !== 204) {
+        this.log.error(`Mach [${m.key}] Rec [${recNbr}: Non-success status code ${response.statusCode}`);
+      } else {
+        this.client.ack().catch(err2 => {
+          this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err2.message}`);
+        });
+      }
+    });
+  } catch (err) {
+    this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err.message}`);
   }
-
-  const recordDate = moment(rec.timeString).utcOffset(0, true).utc();
-
-  if (!recordDate) {
-    this.log.error(`Mach [${m.key}]: Invalid time format for record ${rec.recordNumber}`);
-    return;
-  }
-
-  const sourceKey = `${rec.station} ${rec.table}`;
-  const source = m.sources[sourceKey];
-
-  if (!source) {
-    this.log.error(`Mach [${m.key}]: No source found for '${sourceKey}'`);
-    return;
-  }
-
-  // Allow for static fields to be specified for every point
-  const row = Object.assign({}, source.load.fields, rec.fields && rec.fields.reduce((obj, field) => {
-    if (field.name) obj[field.name.replace(/\W+/g, '_')] = field.value;
-    return obj;
-  }, {}));
-  const fieldSet = Object.keys(row).filter(key => {
-    return typeof row[key] === 'number' && !Number.isNaN(row[key]);
-  }).map(key => {
-    return `${key}=${row[key]}`;
-  });
-
-  if (fieldSet.length === 0) {
-    this.log.error(`Mach [${m.key}]: Nothing to write for record ${rec.recordNumber}`);
-    return;
-  }
-
-  const time = source.timeEditor ? source.timeEditor.edit(recordDate).valueOf() : recordDate.valueOf();
-  const buf = Buffer.from(`${source.measurementTagSet} ${fieldSet.join(',')} ${time}\n`);
-
-  const requestOpts = {
-    body: buf,
-    method: 'POST',
-    qs: {
-      db: source.load.database,
-      precision: 'ms'
-    },
-    url: `${this.influxUrl}/write`
-  };
-
-  new Promise((resolve, reject) => {
-    request(requestOpts, (err, response) => err ? reject(err) : resolve(response));
-  }).then(response => {
-    if (response.statusCode !== 204) throw new Error(`Non-success status code ${response.statusCode}`);
-
-    return this.client.ack();
-  }).catch(err => {
-    this.log.error(`Mach [${m.key}]: ${err.message}`);
-  });
 }
 
 exports.default = {

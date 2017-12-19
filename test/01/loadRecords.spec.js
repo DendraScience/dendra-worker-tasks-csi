@@ -20,7 +20,8 @@ describe('loadRecords tasks', function () {
       _id: 'taskMachine-loadRecords-current',
       sources: [
         {
-          station: 'test_blueoak',
+          // station: 'test_blueoak',
+          station: 'test_quailridge',
           table: 'TenMin',
           options: {
             order_option: 'collected'
@@ -31,7 +32,8 @@ describe('loadRecords tasks', function () {
             reverse_time_edit: 'su_8_h'
           },
           load: {
-            database: 'station_blue_oak',
+            // database: 'station_blue_oak',
+            database: 'station_quail_ridge',
             measurement: 'ten_minute_data'
           }
         }
@@ -83,7 +85,8 @@ describe('loadRecords tasks', function () {
       const requestOpts = {
         method: 'POST',
         qs: {
-          db: 'station_blue_oak',
+          // db: 'station_blue_oak',
+          db: 'station_quail_ridge',
           q: `SELECT COUNT(*) FROM "ten_minute_data"`
         },
         url: `${influxUrl}/query`
@@ -107,18 +110,21 @@ describe('loadRecords tasks', function () {
       _id: 'taskMachine-loadRecords-current',
       sources: [
         {
-          station: 'test_blueoak',
+          // station: 'test_blueoak',
+          station: 'test_quailridge',
           table: 'Status',
           options: {
             order_option: 'collected'
           },
-          description: 'Test Blue Oak',
+          // description: 'Test Blue Oak',
+          description: 'Test Quail Ridge',
           transform: {
             time_edit: 'ad_8_h',
             reverse_time_edit: 'su_8_h'
           },
           load: {
-            database: 'station_blue_oak',
+            // database: 'station_blue_oak',
+            database: 'station_quail_ridge',
             measurement: 'status_data'
           }
         }
@@ -145,7 +151,8 @@ describe('loadRecords tasks', function () {
       const requestOpts = {
         method: 'POST',
         qs: {
-          db: 'station_blue_oak',
+          // db: 'station_blue_oak',
+          db: 'station_quail_ridge',
           q: `SELECT COUNT(*) FROM "status_data"`
         },
         url: `${influxUrl}/query`
