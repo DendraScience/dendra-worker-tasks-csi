@@ -198,29 +198,31 @@ export default {
           table
         }, options)
 
-        const requestOpts = {
-          method: 'POST',
-          qs: {
-            db: load.database,
-            q: `SELECT * FROM "${load.measurement}" ORDER BY time DESC LIMIT 1`
-          },
-          url: `${influxUrl}/query`
-        }
-        const response = await new Promise((resolve, reject) => {
-          request(requestOpts, (err, resp) => err ? reject(err) : resolve(resp))
-        })
+        if (!spec.start_option) {
+          const requestOpts = {
+            method: 'POST',
+            qs: {
+              db: load.database,
+              q: `SELECT * FROM "${load.measurement}" ORDER BY time DESC LIMIT 1`
+            },
+            url: `${influxUrl}/query`
+          }
+          const response = await new Promise((resolve, reject) => {
+            request(requestOpts, (err, resp) => err ? reject(err) : resolve(resp))
+          })
 
-        if (response.statusCode !== 200) throw new Error(`Non-success status code ${response.statusCode}`)
+          if (response.statusCode !== 200) throw new Error(`Non-success status code ${response.statusCode}`)
 
-        const body = JSON.parse(response.body)
+          const body = JSON.parse(response.body)
 
-        try {
-          const recordDate = moment(body.results[0].series[0].values[0][0]).utc()
-          const timeStamp = reverseTimeEditor ? reverseTimeEditor.edit(recordDate) : recordDate
-          spec.time_stamp = timeStamp.format('YYYY MM DD HH:mm:ss.SS')
-          spec.start_option = 'at-time'
-        } catch (e) {
-          spec.start_option = 'at-oldest'
+          try {
+            const recordDate = moment(body.results[0].series[0].values[0][0]).utc()
+            const timeStamp = reverseTimeEditor ? reverseTimeEditor.edit(recordDate) : recordDate
+            spec.time_stamp = timeStamp.format('YYYY MM DD HH:mm:ss.SS')
+            spec.start_option = 'at-time'
+          } catch (e) {
+            spec.start_option = 'at-oldest'
+          }
         }
 
         specs.push(spec)

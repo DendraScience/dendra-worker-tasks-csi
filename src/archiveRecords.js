@@ -124,12 +124,14 @@ export default {
           table
         }, options)
 
-        if (m.state.stamps && m.state.stamps[sourceKey]) {
-          const timeStamp = moment(m.state.stamps[sourceKey]).utc()
-          spec.time_stamp = timeStamp.format('YYYY MM DD HH:mm:ss.SS')
-          spec.start_option = 'at-time'
-        } else {
-          spec.start_option = 'at-oldest'
+        if (!spec.start_option) {
+          if (m.state.stamps && m.state.stamps[sourceKey]) {
+            const timeStamp = moment(m.state.stamps[sourceKey]).utc()
+            spec.time_stamp = timeStamp.format('YYYY MM DD HH:mm:ss.SS')
+            spec.start_option = 'at-time'
+          } else {
+            spec.start_option = 'at-oldest'
+          }
         }
 
         specs.push(spec)

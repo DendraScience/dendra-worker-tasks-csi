@@ -1,6 +1,6 @@
 {
   "name": "@dendra-science/worker-tasks-csi",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Worker tasks for loading CSI (Campbell Scientific, Inc.) data.",
   "license": "BSD-2-Clause-FreeBSD",
   "author": "J. Scott Smith <scott@newleafsolutionsinc.com>",
@@ -25,7 +25,7 @@
   "dependencies": {
     "@dendra-science/csi-ldmp-client": "0.0.3",
     "@dendra-science/utils-moment": "0.0.1",
-    "moment": "^2.19.4",
+    "moment": "^2.20.1",
     "request": "^2.82.0"
   },
   "devDependencies": {
