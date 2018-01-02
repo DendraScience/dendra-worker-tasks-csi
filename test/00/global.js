@@ -11,7 +11,7 @@ tm.configure({
 
 // For dev:   'http://localhost:3033'
 // For local: 'http://localhost:8080/_services/archive/json/api/v1'
-const JSON_ARCHIVE_API_URL = 'http://localhost:8080/_services/archive/json/api/v1'
+const JSON_ARCHIVE_API_URL = 'http://localhost:3033'
 
 app.logger = console
 

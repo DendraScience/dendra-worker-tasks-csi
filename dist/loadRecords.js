@@ -15,16 +15,16 @@ function handleRecord(rec) {
   if (!rec) return;
 
   const m = this.model;
-  const recNbr = rec.recordNumber;
+  const recordNumber = rec.recordNumber;
 
   try {
     //
     // Begin standard record validation
     // TODO: Move to helper
-    if (typeof recNbr === 'undefined') throw new Error('Record number undefined');
+    if (typeof recordNumber === 'undefined') throw new Error('Record number undefined');
 
     if (m.specifyStateAt !== m.stateAt) {
-      this.log.info(`Mach [${m.key}] Rec [${recNbr}: Deferring`);
+      this.log.info(`Mach [${m.key}] Rec [${recordNumber}]: Deferring`);
       return;
     }
 
@@ -39,12 +39,29 @@ function handleRecord(rec) {
     // End standard record validation
     //
 
+    /*
+      Construct the following in order to write a point to InfluxDB:
+      1. The fieldSet
+      2. The measurementTagSet
+      3. The time (in milliseconds)
+      4. The Line Protocol buffer string (buf)
+     */
+
+    //
+    // 1. The fieldSet
+    //
+
     // Allow for static fields to be specified for every point
     const row = Object.assign({}, source.load.fields, rec.fields && rec.fields.reduce((obj, field) => {
       if (field.name) obj[field.name.replace(/\W+/g, '_')] = field.value;
       return obj;
     }, {}));
+
+    // Add the record number to the row
+    row.record_number = recordNumber;
+
     const fieldSet = Object.keys(row).filter(key => {
+      // TODO: Improve type handling
       return typeof row[key] === 'number' && !Number.isNaN(row[key]);
     }).map(key => {
       return `${key}=${row[key]}`;
@@ -52,8 +69,45 @@ function handleRecord(rec) {
 
     if (fieldSet.length === 0) throw new Error('Nothing to write');
 
-    const time = source.timeEditor ? source.timeEditor.edit(recordDate).valueOf() : recordDate.valueOf();
-    const buf = Buffer.from(`${source.measurementTagSet} ${fieldSet.join(',')} ${time}\n`);
+    //
+    // 2. The measurementTagSet
+    //
+
+    const measurementTagSet = [...source.measurementTagSet];
+
+    // Allow for time-based tags to be specified for every point
+    const tagDate = source.tagTimeEditor ? source.tagTimeEditor.edit(recordDate) : recordDate;
+    const timeTags = source.load.time_tags;
+
+    if (timeTags) Object.keys(timeTags).forEach(key => measurementTagSet.push(`${key}=${tagDate.format(timeTags[key])}`));
+
+    //
+    // 3. The time (in milliseconds)
+    //
+
+    // Transform the record timestamp
+    let editedDate = source.timeEditor ? source.timeEditor.edit(recordDate) : recordDate;
+
+    // Transform the record timestamp if a matching exception is found
+    const exceptions = source.transform_exceptions;
+    if (exceptions) {
+      const exception = exceptions.find(exception => {
+        const ba = exception.begins_at;
+        const ea = exception.ends_at;
+
+        return ba && ea && ba.record_time && ea.record_time && recordDate.isBetween(ba.record_time, ea.record_time, null, '[]') && recordNumber >= ba.record_number && recordNumber <= ea.record_number;
+      });
+
+      if (exception) editedDate = exception.timeEditor.edit(recordDate);
+    }
+
+    const time = editedDate.valueOf();
+
+    //
+    // 4. The Line Protocol buffer string (buf)
+    //
+
+    const buf = Buffer.from(`${measurementTagSet.join(',')} ${fieldSet.join(',')} ${time}\n`);
 
     const requestOpts = {
       body: buf,
@@ -67,17 +121,17 @@ function handleRecord(rec) {
 
     request(requestOpts, (err, response) => {
       if (err) {
-        this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err.message}`);
+        this.log.error(`Mach [${m.key}] Rec [${recordNumber}]: ${err.message}`);
       } else if (response.statusCode !== 204) {
-        this.log.error(`Mach [${m.key}] Rec [${recNbr}: Non-success status code ${response.statusCode}`);
+        this.log.error(`Mach [${m.key}] Rec [${recordNumber}]: Non-success status code ${response.statusCode}`);
       } else {
         this.client.ack().catch(err2 => {
-          this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err2.message}`);
+          this.log.error(`Mach [${m.key}] Rec [${recordNumber}]: ${err2.message}`);
         });
       }
     });
   } catch (err) {
-    this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err.message}`);
+    this.log.error(`Mach [${m.key}] Rec [${recordNumber}]: ${err.message}`);
   }
 }
 
@@ -161,22 +215,27 @@ exports.default = {
           const sourceKey = `${src.station} ${src.table}`;
           const source = sources[sourceKey] = Object.assign({}, src);
 
-          // Concat the leftmost part of the Line Protocol string for loading
-          const parts = [source.load.measurement];
-          if (source.load.tags) {
-            // Allow for static tags to be specified for every point
-            Object.keys(source.load.tags).forEach(key => parts.push(`${key}=${source.load.tags[key]}`));
-          }
-          source.measurementTagSet = parts.join(',');
+          // Prepare the leftmost parts of the Line Protocol string for loading
+          const measurementTagSet = source.measurementTagSet = [source.load.measurement];
 
-          if (source.transform && source.transform.time_edit) {
-            // Create a MomentEditor instance for adjusting timestamps
-            source.timeEditor = new MomentEditor(source.transform.time_edit);
+          // Allow for static tags to be specified for every point
+          const tags = source.load.tags;
+          if (tags) Object.keys(tags).forEach(key => measurementTagSet.push(`${key}=${tags[key]}`));
+
+          const transform = source.transform;
+          if (transform) {
+            // Create MomentEditor instances for adjusting timestamps
+            if (transform.time_edit) source.timeEditor = new MomentEditor(transform.time_edit);
+            if (transform.reverse_time_edit) source.reverseTimeEditor = new MomentEditor(transform.reverse_time_edit);
+            if (transform.tag_time_edit) source.tagTimeEditor = new MomentEditor(transform.tag_time_edit);
           }
 
-          if (source.transform && source.transform.reverse_time_edit) {
-            // Create a MomentEditor instance for adjusting timestamps
-            source.reverseTimeEditor = new MomentEditor(source.transform.reverse_time_edit);
+          const exceptions = source.transform_exceptions;
+          if (exceptions) {
+            // Create MomentEditor instances for adjusting the timestamp on specific records
+            exceptions.forEach(exception => {
+              if (exception.time_edit) exception.timeEditor = new MomentEditor(exception.time_edit);
+            });
           }
         }
 
@@ -223,8 +282,8 @@ exports.default = {
             const body = JSON.parse(response.body);
 
             try {
-              const recordDate = moment(body.results[0].series[0].values[0][0]).utc();
-              const timeStamp = reverseTimeEditor ? reverseTimeEditor.edit(recordDate) : recordDate;
+              const recentDate = moment(body.results[0].series[0].values[0][0]).utc();
+              const timeStamp = reverseTimeEditor ? reverseTimeEditor.edit(recentDate) : recentDate;
               spec.time_stamp = timeStamp.format('YYYY MM DD HH:mm:ss.SS');
               spec.start_option = 'at-time';
             } catch (e) {

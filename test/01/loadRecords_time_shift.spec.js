@@ -5,7 +5,7 @@
 const request = require('request')
 const util = require('util')
 
-describe('loadRecords tasks', function () {
+describe.skip('loadRecords tasks', function () {
   this.timeout(60000)
 
   const influxUrl = main.app.get('apis').influxDB.url
@@ -23,13 +23,28 @@ describe('loadRecords tasks', function () {
           station: 'test_quailridge',
           table: 'TenMin',
           options: {
-            order_option: 'collected'
+            order_option: 'collected',
+            start_option: 'at-time',
+            time_stamp: '2017 12 28 00:00:00.00'
           },
           description: 'Test Quail Ridge',
           transform: {
             time_edit: 'ad_8_h',
             reverse_time_edit: 'su_8_h'
           },
+          transform_exceptions: [
+            {
+              begins_at: {
+                record_number: 0,
+                record_time: new Date('2016-06-02T00:00:00Z')
+              },
+              ends_at: {
+                record_number: 13420,
+                record_time: new Date('2017-12-28T18:20:00Z')
+              },
+              time_edit: 'ad_6_h'
+            }
+          ],
           load: {
             database: 'station_quail_ridge',
             measurement: 'ten_minute_data',
@@ -82,75 +97,13 @@ describe('loadRecords tasks', function () {
     })
   })
 
-  it('should load Quail Ridge TenMin for 5 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
+  it('should load Quail Ridge TenMin for 30 seconds', function () {
+    return new Promise(resolve => setTimeout(resolve, 30000)).then(() => {
       const requestOpts = {
         method: 'POST',
         qs: {
           db: 'station_quail_ridge',
           q: `SELECT COUNT(*) FROM "ten_minute_data"`
-        },
-        url: `${influxUrl}/query`
-      }
-      return new Promise((resolve, reject) => {
-        request(requestOpts, (err, resp) => err ? reject(err) : resolve(resp))
-      })
-    }).then(response => {
-      if (response.statusCode !== 200) throw new Error(`Non-success status code ${response.statusCode}`)
-      return JSON.parse(response.body)
-    }).then(body => {
-      expect(body).to.have.nested.property('results.0.series.0.values.0.0')
-    })
-  })
-
-  it('should reconfig for Quail Ridge Status', function () {
-    const now = new Date()
-
-    model.scratch = {}
-    model.state = {
-      _id: 'taskMachine-loadRecords-current',
-      sources: [
-        {
-          station: 'test_quailridge',
-          table: 'Status',
-          options: {
-            order_option: 'collected'
-          },
-          description: 'Test Quail Ridge',
-          transform: {
-            time_edit: 'ad_8_h',
-            reverse_time_edit: 'su_8_h'
-          },
-          load: {
-            database: 'station_quail_ridge',
-            measurement: 'status_data'
-          }
-        }
-      ],
-      created_at: now,
-      updated_at: now
-    }
-
-    return machine.clear().start().then(success => {
-      expect(success).to.be.true
-
-      expect(machine.model).to.have.property('clientReady', false)
-      expect(machine.model).to.have.property('connectReady', true)
-      expect(machine.model).to.have.property('databaseReady', true)
-      expect(machine.model).to.have.property('disconnectReady', true)
-      expect(machine.model).to.have.property('sourcesReady', true)
-      expect(machine.model).to.have.property('specsReady', true)
-      expect(machine.model).to.have.property('specifyReady', true)
-    })
-  })
-
-  it('should load Quail Ridge Status for 5 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
-      const requestOpts = {
-        method: 'POST',
-        qs: {
-          db: 'station_quail_ridge',
-          q: `SELECT COUNT(*) FROM "status_data"`
         },
         url: `${influxUrl}/query`
       }

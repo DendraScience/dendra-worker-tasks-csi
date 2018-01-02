@@ -1,6 +1,6 @@
 {
   "name": "@dendra-science/worker-tasks-csi",
-  "version": "0.0.12",
+  "version": "0.0.14",
   "description": "Worker tasks for loading CSI (Campbell Scientific, Inc.) data.",
   "license": "BSD-2-Clause-FreeBSD",
   "author": "J. Scott Smith <scott@newleafsolutionsinc.com>",
@@ -34,7 +34,7 @@
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "chai": "^4.1.1",
-    "eslint": "^4.13.1",
+    "eslint": "^4.14.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-node": "^5.2.1",
@@ -43,7 +43,7 @@
     "feathers": "^2.2.3",
     "feathers-hooks": "^2.1.2",
     "feathers-rest": "^1.8.1",
-    "mocha": "^4.0.1"
+    "mocha": "^4.1.0"
   },
   "optionalDependencies": {
     "fsevents": "^1.0.0"

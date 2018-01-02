@@ -6,16 +6,16 @@ function handleRecord (rec) {
   if (!rec) return
 
   const m = this.model
-  const recNbr = rec.recordNumber
+  const recordNumber = rec.recordNumber
 
   try {
     //
     // Begin standard record validation
     // TODO: Move to helper
-    if (typeof recNbr === 'undefined') throw new Error('Record number undefined')
+    if (typeof recordNumber === 'undefined') throw new Error('Record number undefined')
 
     if (m.specifyStateAt !== m.stateAt) {
-      this.log.info(`Mach [${m.key}] Rec [${recNbr}: Deferring`)
+      this.log.info(`Mach [${m.key}] Rec [${recordNumber}]: Deferring`)
       return
     }
 
@@ -30,8 +30,12 @@ function handleRecord (rec) {
     // End standard record validation
     //
 
-    const archiveDate = source.timeEditor ? source.timeEditor.edit(recordDate) : recordDate
-    const id = `csi-${rec.station}-${rec.table}-${archiveDate.format('YYYY-MM-DD-HH-mm')}`
+    // Transform the record timestamp
+    const editedDate = source.timeEditor ? source.timeEditor.edit(recordDate) : recordDate
+
+    // Concat an identifier for the document store
+    const recordNumberStr = `0000000000${recordNumber}`.slice(-10)
+    const id = `csi-${rec.station}-${rec.table}-${editedDate.format('YYYY-MM-DD-HH-mm')}_${recordNumberStr}`
 
     this.documentService.create({
       _id: id,
@@ -42,10 +46,10 @@ function handleRecord (rec) {
       if (!m.stamps) m.stamps = {}
       m.stamps[sourceKey] = recordDate.valueOf()
     }).catch(err => {
-      this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err.message}`)
+      this.log.error(`Mach [${m.key}] Rec [${recordNumber}]: ${err.message}`)
     })
   } catch (err) {
-    this.log.error(`Mach [${m.key}] Rec [${recNbr}: ${err.message}`)
+    this.log.error(`Mach [${m.key}] Rec [${recordNumber}]: ${err.message}`)
   }
 }
 
