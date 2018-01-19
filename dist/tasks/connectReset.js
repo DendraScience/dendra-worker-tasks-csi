@@ -13,7 +13,7 @@ exports.default = {
   assign(m) {
     const log = m.$app.logger;
 
-    log.info(`Mach [${m.key}]: Connection reset`);
+    log.error(`Mach [${m.key}]: Connection reset`);
 
     delete m.connectStateAt;
     delete m.specifyStateAt;

@@ -5,7 +5,7 @@
 const request = require('request')
 const util = require('util')
 
-describe.skip('loadRecords tasks w/ time shift', function () {
+describe('loadRecords tasks w/ records missing', function () {
   this.timeout(60000)
 
   const influxUrl = main.app.get('apis').influxDB.url
@@ -23,28 +23,16 @@ describe.skip('loadRecords tasks w/ time shift', function () {
           station: 'test_quailridge',
           table: 'TenMin',
           options: {
+            backfill_seconds: 1200,
             order_option: 'collected',
-            start_option: 'at-time',
-            time_stamp: '2017 12 28 00:00:00.00'
+            start_option: 'relative-to-newest'
           },
           description: 'Test Quail Ridge',
           transform: {
             time_edit: 'ad_8_h',
             reverse_time_edit: 'su_8_h'
           },
-          transform_exceptions: [
-            {
-              begins_at: {
-                record_number: 0,
-                record_time: new Date('2016-06-02T00:00:00Z')
-              },
-              ends_at: {
-                record_number: 13420,
-                record_time: new Date('2017-12-28T18:20:00Z')
-              },
-              time_edit: 'ad_6_h'
-            }
-          ],
+          record_missing_threshold: 5,
           load: {
             database: 'station_quail_ridge',
             measurement: 'ten_minute_data',
@@ -91,30 +79,29 @@ describe.skip('loadRecords tasks w/ time shift', function () {
       expect(machine.model).to.have.property('connectReady', true)
       expect(machine.model).to.have.property('databaseReady', true)
       expect(machine.model).to.have.property('disconnectReady', false)
+      expect(machine.model).to.have.property('recordMissingReady', true)
       expect(machine.model).to.have.property('sourcesReady', true)
       expect(machine.model).to.have.property('specsReady', true)
       expect(machine.model).to.have.property('specifyReady', true)
     })
   })
 
-  it('should load Quail Ridge TenMin for 30 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 30000)).then(() => {
-      const requestOpts = {
-        method: 'POST',
-        qs: {
-          db: 'station_quail_ridge',
-          q: `SELECT COUNT(*) FROM "ten_minute_data"`
-        },
-        url: `${influxUrl}/query`
-      }
-      return new Promise((resolve, reject) => {
-        request(requestOpts, (err, resp) => err ? reject(err) : resolve(resp))
-      })
-    }).then(response => {
-      if (response.statusCode !== 200) throw new Error(`Non-success status code ${response.statusCode}`)
-      return JSON.parse(response.body)
-    }).then(body => {
-      expect(body).to.have.nested.property('results.0.series.0.values.0.0')
+  it('should load Quail Ridge TenMin for 10 seconds', function () {
+    return new Promise(resolve => setTimeout(resolve, 10000)).then(() => {
+      return machine.clear().start()
+    }).then(success => {
+      expect(success).to.be.true
+
+      expect(machine.model).to.have.property('clientReady', false)
+      expect(machine.model).to.have.property('connectReady', true)
+      expect(machine.model).to.have.property('databaseReady', false)
+      expect(machine.model).to.have.property('disconnectReady', true)
+      expect(machine.model).to.have.property('recordMissingReady', true)
+      expect(machine.model).to.have.property('sourcesReady', false)
+      expect(machine.model).to.have.property('specsReady', false)
+      expect(machine.model).to.have.property('specifyReady', true)
+    }).then(() => {
+      return new Promise(resolve => setTimeout(resolve, 5000))
     })
   })
 })

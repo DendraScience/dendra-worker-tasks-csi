@@ -5,7 +5,7 @@
 const request = require('request')
 const util = require('util')
 
-describe('loadRecords tasks', function () {
+describe.skip('loadRecords tasks', function () {
   this.timeout(60000)
 
   const influxUrl = main.app.get('apis').influxDB.url

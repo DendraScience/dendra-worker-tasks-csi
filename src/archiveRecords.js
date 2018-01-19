@@ -43,6 +43,8 @@ function handleRecord (rec) {
     }).then(() => {
       return this.client.ack()
     }).then(() => {
+      source.recordAckAt = new Date()
+
       if (!m.stamps) m.stamps = {}
       m.stamps[sourceKey] = recordDate.valueOf()
     }).catch(err => {
@@ -79,6 +81,8 @@ export default {
   connect: require('./tasks/connect').default,
 
   connectReset: require('./tasks/connectReset').default,
+
+  recordMissing: require('./tasks/recordMissing').default,
 
   disconnect: require('./tasks/disconnect').default,
 

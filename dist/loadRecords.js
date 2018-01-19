@@ -18,6 +18,8 @@ function handleRecord(rec) {
   const recordNumber = rec.recordNumber;
 
   try {
+    this.log.info(`Mach [${m.key}] Rec [${recordNumber}]: Received`);
+
     //
     // Begin standard record validation
     // TODO: Move to helper
@@ -119,13 +121,21 @@ function handleRecord(rec) {
       url: `${this.influxUrl}/write`
     };
 
+    this.log.info(`Mach [${m.key}] Rec [${recordNumber}]: Writing to db ${source.load.database}`);
+
     request(requestOpts, (err, response) => {
       if (err) {
         this.log.error(`Mach [${m.key}] Rec [${recordNumber}]: ${err.message}`);
       } else if (response.statusCode !== 204) {
         this.log.error(`Mach [${m.key}] Rec [${recordNumber}]: Non-success status code ${response.statusCode}`);
       } else {
-        this.client.ack().catch(err2 => {
+        this.log.info(`Mach [${m.key}] Rec [${recordNumber}]: Sending ack`);
+
+        this.client.ack().then(() => {
+          source.recordAckAt = new Date();
+
+          this.log.info(`Mach [${m.key}] Rec [${recordNumber}]: Ack sent`);
+        }).catch(err2 => {
           this.log.error(`Mach [${m.key}] Rec [${recordNumber}]: ${err2.message}`);
         });
       }
@@ -161,6 +171,8 @@ exports.default = {
   connect: require('./tasks/connect').default,
 
   connectReset: require('./tasks/connectReset').default,
+
+  recordMissing: require('./tasks/recordMissing').default,
 
   database: {
     guard(m) {
