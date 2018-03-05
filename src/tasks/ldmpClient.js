@@ -11,10 +11,10 @@ async function publish ({log, m, rec, recordNumber, source, stan}) {
   log.info(`Agent [${m.key}] Rec [${recordNumber}]: Publishing to: ${subject}`)
 
   const msgStr = JSON.stringify({
-    content: rec,
     context: Object.assign({
       imported_at: new Date()
-    }, source.context)
+    }, source.context),
+    payload: rec
   })
   const guid = await new Promise((resolve, reject) => {
     stan.publish(subject, msgStr, (err, guid) => err ? reject(err) : resolve(guid))
