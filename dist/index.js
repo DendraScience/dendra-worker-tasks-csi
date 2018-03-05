@@ -1,25 +1,14 @@
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+/**
+ * Worker tasks for loading CSI (Campbell Scientific, Inc.) data.
+ *
+ * @author J. Scott Smith
+ * @license BSD-2-Clause-FreeBSD
+ * @module dendra-worker-tasks-csi
+ */
 
-var _archiveRecords = require('./archiveRecords');
-
-Object.defineProperty(exports, 'archiveRecords', {
-  enumerable: true,
-  get: function () {
-    return _interopRequireDefault(_archiveRecords).default;
-  }
-});
-
-var _loadRecords = require('./loadRecords');
-
-Object.defineProperty(exports, 'loadRecords', {
-  enumerable: true,
-  get: function () {
-    return _interopRequireDefault(_loadRecords).default;
-  }
-});
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+// Named exports for convenience
+module.exports = {
+  importRecords: require('./importRecords')
+};

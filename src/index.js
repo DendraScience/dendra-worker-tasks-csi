@@ -7,5 +7,6 @@
  */
 
 // Named exports for convenience
-export { default as archiveRecords } from './archiveRecords'
-export { default as loadRecords } from './loadRecords'
+module.exports = {
+  importRecords: require('./importRecords')
+}
