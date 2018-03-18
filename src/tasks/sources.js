@@ -11,21 +11,21 @@ module.exports = {
 
   execute (m) {
     return m.state.sources.reduce((sources, src) => {
-      if (src.pub_to_subject && src.station && src.table) {
+      if (src.station && src.table) {
         const sourceKey = `${src.station}$$${src.table}`
-        sources[sourceKey] = Object.assign({}, m.state.defaults, src)
+        const source = Object.assign({}, m.state.source_defaults, src)
+
+        if (source.pub_to_subject) sources[sourceKey] = source
       }
 
       return sources
     }, {})
   },
 
-  assign (m, res) {
-    const log = m.$app.logger
-
-    log.info(`Agent [${m.key}]: Sources ready`)
-
+  assign (m, res, {logger}) {
     m.sources = res
     m.sourcesTs = m.versionTs
+
+    logger.info('Sources ready')
   }
 }

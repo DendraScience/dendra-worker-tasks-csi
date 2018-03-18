@@ -4,18 +4,22 @@
 
 module.exports = {
   guard (m) {
-    return !m.stateBookmarksReady &&
+    return !m.stateBookmarksError && !m.stateBookmarksReady &&
       m.bookmarks
   },
 
-  execute () { return true },
-
-  assign (m) {
-    m.state.bookmarks = Object.keys(m.bookmarks).map(key => {
+  execute (m) {
+    return Object.keys(m.bookmarks).map(key => {
       return {
         key,
         value: m.bookmarks[key]
       }
     })
+  },
+
+  assign (m, res, {logger}) {
+    m.state.bookmarks = res
+
+    logger.info('Bookmarks assigned')
   }
 }

@@ -1,11 +1,11 @@
 # Dendra Worker CSI Tasks
 
-Dendra Worker tasks for loading CSI (Campbell Scientific, Inc.) LoggerNet data records.
+Dendra Worker tasks for importing CSI (Campbell Scientific, Inc.) LoggerNet data records.
 
 
 ## Instructions
 
-1. Be sure you have Node version 6.11.x. If you’re using nvm, you may need to `nvm use 6.11`.
+1. Be sure you have Node version 8.7.x. If you’re using nvm, you may need to `nvm use 8.7`.
 
 2. Clone this repo.
 

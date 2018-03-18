@@ -37,12 +37,10 @@ module.exports = {
     })
   },
 
-  assign (m, res) {
-    const log = m.$app.logger
-
-    log.info(`Agent [${m.key}]: LDMP client spec ready`)
-
+  assign (m, res, {logger}) {
     m.ldmpSpec = res
     m.ldmpSpecTs = m.versionTs
+
+    logger.info('LDMP client spec ready', res)
   }
 }

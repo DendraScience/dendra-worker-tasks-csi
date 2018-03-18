@@ -10,9 +10,11 @@ module.exports = {
       !m.private.stan && !m.stanConnected
   },
 
-  execute (m) {
+  execute (m, {logger}) {
     const cfg = m.$app.get('clients').stan
     const stan = STAN.connect(cfg.cluster, cfg.client, cfg.opts || {})
+
+    logger.info('NATS Streaming connecting')
 
     return new Promise((resolve, reject) => {
       stan.once('connect', () => {
@@ -23,21 +25,25 @@ module.exports = {
         stan.removeAllListeners()
         reject(err)
       })
+    }).catch(err => {
+      logger.error('NATS Streaming connect error', err)
+      throw err
     })
   },
 
-  assign (m, res) {
-    const log = m.$app.logger
-
-    log.info(`Agent [${m.key}]: NATS Streaming connected`)
-
-    m.private.stan = res
-    m.private.stan.on('close', () => {
-      log.info(`Agent [${m.key}]: NATS Streaming closed`)
+  assign (m, res, {logger}) {
+    res.on('close', () => {
+      logger.info('NATS Streaming closed')
 
       m.stanConnected = false
     })
+    res.on('error', err => {
+      logger.info('NATS Streaming error', err)
+    })
 
+    m.private.stan = res
     m.stanConnected = true
+
+    logger.info('NATS Streaming connected')
   }
 }

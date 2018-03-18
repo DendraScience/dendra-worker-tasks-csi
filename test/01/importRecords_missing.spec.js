@@ -1,5 +1,5 @@
 /**
- * Tests for loadRecords tasks w/ records missing
+ * Tests for importRecords tasks w/ records missing
  */
 
 describe('importRecords tasks w/ records missing', function () {
@@ -7,25 +7,23 @@ describe('importRecords tasks w/ records missing', function () {
 
   const now = new Date()
   const model = {
-    $app: main.app,
-    key: 'importRecords',
-    private: {},
     props: {},
     state: {
       _id: 'taskMachine-importRecords-current',
-      defaults: {
-        record_missing_threshold: 2
+      health_check_threshold: 2,
+      source_defaults: {
+        some_default: 'default'
       },
       sources: [
         {
           context: {
-            some: 'value'
+            some_value: 'value'
           },
           description: 'Test Quail Ridge',
           pub_to_subject: 'csi.import.v1.out',
           spec_options: {
-            backfill_seconds: 1200,
-            order_option: 'logged-with-holes',
+            backfill_seconds: 600,
+            order_option: 'collected',
             start_option: 'relative-to-newest'
           },
           station: 'test_quailridge',
@@ -37,19 +35,38 @@ describe('importRecords tasks w/ records missing', function () {
     }
   }
 
+  Object.defineProperty(model, '$app', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: main.app
+  })
+  Object.defineProperty(model, 'key', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: 'importRecords'
+  })
+  Object.defineProperty(model, 'private', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: {}
+  })
+
   let tasks
   let machine
 
   after(function () {
     return Promise.all([
-      model.private.ldmpClient ? model.private.ldmpClient.disconnect() : null,
+      model.private.ldmpClient ? model.private.ldmpClient.disconnect() : Promise.resolve(),
 
       model.private.stan ? new Promise((resolve, reject) => {
         model.private.stan.removeAllListeners()
         model.private.stan.once('close', resolve)
         model.private.stan.once('error', reject)
         model.private.stan.close()
-      }) : null
+      }) : Promise.resolve()
     ])
   })
 
@@ -61,7 +78,10 @@ describe('importRecords tasks w/ records missing', function () {
 
   it('should create machine', function () {
     machine = new tm.TaskMachine(model, tasks, {
-      interval: -1
+      helpers: {
+        logger: console
+      },
+      interval: 500
     })
 
     expect(machine).to.have.property('model')
@@ -74,21 +94,18 @@ describe('importRecords tasks w/ records missing', function () {
       expect(success).to.be.true
 
       // Verify task state
-      expect(machine.model).to.have.property('ldmpClientReady', true)
-      expect(machine.model).to.have.property('ldmpConnectReady', true)
-      expect(machine.model).to.have.property('ldmpDisconnectReady', false)
-      expect(machine.model).to.have.property('ldmpSpecReady', true)
-      expect(machine.model).to.have.property('ldmpSpecifyReady', true)
-      expect(machine.model).to.have.property('ldmpWatchReady', false)
-      expect(machine.model).to.have.property('recordMissingReady', true)
-      expect(machine.model).to.have.property('sourcesReady', true)
-      expect(machine.model).to.have.property('stanReady', true)
-      expect(machine.model).to.have.property('stanWatchReady', false)
-      expect(machine.model).to.have.property('stateBookmarksReady', false)
-      expect(machine.model).to.have.property('versionTsReady', false)
-
-      // Check for defaults
-      expect(machine.model).to.have.nested.property('sources.test_quailridge$$TenMin.record_missing_threshold', 2)
+      expect(model).to.have.property('healthCheckReady', true)
+      expect(model).to.have.property('ldmpCheckReady', false)
+      expect(model).to.have.property('ldmpClientReady', true)
+      expect(model).to.have.property('ldmpConnectReady', true)
+      expect(model).to.have.property('ldmpDisconnectReady', false)
+      expect(model).to.have.property('ldmpSpecifyReady', true)
+      expect(model).to.have.property('ldmpSpecReady', true)
+      expect(model).to.have.property('sourcesReady', true)
+      expect(model).to.have.property('stanCheckReady', false)
+      expect(model).to.have.property('stanReady', true)
+      expect(model).to.have.property('stateBookmarksReady', false)
+      expect(model).to.have.property('versionTsReady', false)
     })
   })
 
@@ -99,18 +116,18 @@ describe('importRecords tasks w/ records missing', function () {
       expect(success).to.be.true
 
       // Verify task state
-      expect(machine.model).to.have.property('ldmpClientReady', false)
-      expect(machine.model).to.have.property('ldmpConnectReady', true)
-      expect(machine.model).to.have.property('ldmpDisconnectReady', true)
-      expect(machine.model).to.have.property('ldmpSpecReady', false)
-      expect(machine.model).to.have.property('ldmpSpecifyReady', true)
-      expect(machine.model).to.have.property('ldmpWatchReady', false)
-      expect(machine.model).to.have.property('recordMissingReady', true)
-      expect(machine.model).to.have.property('sourcesReady', false)
-      expect(machine.model).to.have.property('stanReady', false)
-      expect(machine.model).to.have.property('stanWatchReady', false)
-      expect(machine.model).to.have.property('stateBookmarksReady', true)
-      expect(machine.model).to.have.property('versionTsReady', false)
+      expect(model).to.have.property('healthCheckReady', true)
+      expect(model).to.have.property('ldmpCheckReady', false)
+      expect(model).to.have.property('ldmpClientReady', false)
+      expect(model).to.have.property('ldmpConnectReady', true)
+      expect(model).to.have.property('ldmpDisconnectReady', true)
+      expect(model).to.have.property('ldmpSpecifyReady', true)
+      expect(model).to.have.property('ldmpSpecReady', false)
+      expect(model).to.have.property('sourcesReady', false)
+      expect(model).to.have.property('stanCheckReady', false)
+      expect(model).to.have.property('stanReady', false)
+      expect(model).to.have.property('stateBookmarksReady', true)
+      expect(modelg).to.have.property('versionTsReady', false)
     })
   })
 })

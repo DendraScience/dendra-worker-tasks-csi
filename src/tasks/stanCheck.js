@@ -4,20 +4,20 @@
 
 module.exports = {
   guard (m) {
-    return !m.stanWatchReady &&
+    return !m.stanCheckError && !m.stanCheckReady &&
       m.private.stan && !m.stanConnected
   },
 
   execute (m) { return true },
 
-  assign (m) {
-    const log = m.$app.logger
-
-    log.error(`Agent [${m.key}]: NATS Streaming reset`)
+  assign (m, res, {logger}) {
+    m.private.stan.removeAllListeners()
 
     delete m.private.stan
     delete m.stanConnected
     delete m.ldmpConnectTs
     delete m.ldmpSpecifyTs
+
+    logger.error('NATS Streaming reset')
   }
 }

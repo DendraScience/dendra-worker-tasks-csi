@@ -23,6 +23,8 @@ describe('Subscribe to imported records', function () {
       stan.once('error', err => {
         reject(err)
       })
+    }).then(() => {
+      return new Promise(resolve => setTimeout(resolve, 1000))
     })
   })
 
@@ -33,7 +35,7 @@ describe('Subscribe to imported records', function () {
         stan.once('close', resolve)
         stan.once('error', reject)
         stan.close()
-      }) : null
+      }) : Promise.resolve()
     ])
   })
 
@@ -54,8 +56,11 @@ describe('Subscribe to imported records', function () {
 
   it('should receive messages for 5 seconds', function () {
     return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
-      sub.unsubscribe()
-
+      return new Promise(resolve => {
+        sub.once('unsubscribed', resolve)
+        sub.unsubscribe()
+      })
+    }).then(() => {
       expect(messages).to.have.lengthOf(10)
     })
   })

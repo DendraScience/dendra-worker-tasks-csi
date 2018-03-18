@@ -5,47 +5,50 @@
 const ldmp = require('@dendra-science/csi-ldmp-client')
 const moment = require('moment')
 
-async function publish ({log, m, rec, recordNumber, source, stan}) {
+async function publish ({logger, m, rec, recordNumber, source, stan}) {
   const subject = source.pub_to_subject
 
-  log.info(`Agent [${m.key}] Rec [${recordNumber}]: Publishing to: ${subject}`)
+  logger.info('Publishing', {recordNumber, subject})
 
-  const msgStr = JSON.stringify({
-    context: Object.assign({
-      imported_at: new Date()
-    }, source.context),
-    payload: rec
-  })
-  const guid = await new Promise((resolve, reject) => {
-    stan.publish(subject, msgStr, (err, guid) => err ? reject(err) : resolve(guid))
-  })
+  try {
+    const msgStr = JSON.stringify({
+      context: Object.assign({
+        imported_at: new Date()
+      }, source.context),
+      payload: rec
+    })
+    const guid = await new Promise((resolve, reject) => {
+      stan.publish(subject, msgStr, (err, guid) => err ? reject(err) : resolve(guid))
+    })
 
-  log.info(`Agent [${m.key}] Rec [${recordNumber}]: Published ${guid} to ${subject}`)
+    logger.info('Published', {recordNumber, guid, subject})
+  } catch (err) {
+    logger.error('Publish error', {recordNumber, err, subject})
+  }
 }
 
 function handleRecord (rec) {
-  const m = this
-  const log = m.$app.logger
+  const {logger, m} = this
 
   if (!rec) {
-    log.error(`Agent [${m.key}]: Record undefined`)
+    logger.error('Record undefined')
     return
   }
 
-  const recordNumber = rec.recordNumber
+  const {recordNumber} = rec
 
   if (typeof recordNumber === 'undefined') {
-    log.error(`Agent [${m.key}]: Record number undefined`)
+    logger.error('Record number undefined')
     return
   }
 
   try {
     const {ldmpClient, stan} = m.private
 
-    log.info(`Agent [${m.key}] Rec [${recordNumber}]: Received`)
+    logger.info('Record received', {recordNumber})
 
     if (m.ldmpSpecifyTs !== m.versionTs) {
-      log.info(`Agent [${m.key}] Rec [${recordNumber}]: Deferring`)
+      logger.info('Record deferred', {recordNumber})
       return
     }
 
@@ -58,22 +61,24 @@ function handleRecord (rec) {
 
     if (!source) throw new Error(`No source found for '${sourceKey}'`)
 
-    publish({log, m, rec, recordNumber, source, stan}).then(() => {
-      log.info(`Agent [${m.key}] Rec [${recordNumber}]: Sending ack`)
+    publish({logger, m, rec, recordNumber, source, stan}).then(() => {
+      logger.info('Record ack', {recordNumber})
 
       return ldmpClient.ack()
+    }).catch(err => {
+      logger.error('Record ack error', {recordNumber, err})
     }).then(() => {
-      source.ackTs = new Date()
+      logger.info('Record ack sent', {recordNumber})
+
+      m.healthCheckTs = new Date()
 
       if (!m.bookmarks) m.bookmarks = {}
       m.bookmarks[sourceKey] = recordDate.valueOf()
-
-      log.info(`Agent [${m.key}] Rec [${recordNumber}]: Ack sent`)
     }).catch(err => {
-      log.error(`Agent [${m.key}] Rec [${recordNumber}]: ${err.message}`)
+      logger.error('Record bookmark error', {recordNumber, err})
     })
   } catch (err) {
-    log.error(`Agent [${m.key}] Rec [${recordNumber}]: ${err.message}`)
+    logger.error('Record error', {recordNumber, err})
   }
 }
 
@@ -86,15 +91,14 @@ module.exports = {
   execute (m) {
     const cfg = m.$app.get('clients').ldmp
 
-    return new ldmp.LDMPClient(cfg)
+    return new ldmp.LDMPClient(cfg.opts || {})
   },
 
-  assign (m, res) {
-    const log = m.$app.logger
-
-    log.info(`Agent [${m.key}]: LDMP client ready`)
+  assign (m, res, {logger}) {
+    res.on('record', handleRecord.bind({logger, m}))
 
     m.private.ldmpClient = res
-    m.private.ldmpClient.on('record', handleRecord.bind(m))
+
+    logger.info('LDMP client ready')
   }
 }

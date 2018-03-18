@@ -9,23 +9,23 @@ module.exports = {
     return !m.ldmpConnectError && m.private.ldmpClient && !m.private.ldmpClient.isConnected && m.private.stan && m.stanConnected && m.ldmpSpecTs === m.versionTs && m.ldmpConnectTs !== m.versionTs;
   },
 
-  execute(m) {
-    const log = m.$app.logger;
+  execute(m, { logger }) {
     const client = m.private.ldmpClient;
 
-    log.info(`Agent [${m.key}]: LDMP client connecting to ${client.options.host || 'localhost'}:${client.options.port}`);
+    logger.info('LDMP client connecting', {
+      host: client.options.host || 'localhost',
+      port: client.options.port
+    });
 
     return client.connect().catch(err => {
-      log.error(`Agent [${m.key}]: ${err.message}`);
+      logger.error('LDMP client connect error', err);
       throw err;
     });
   },
 
-  assign(m) {
-    const log = m.$app.logger;
-
-    log.info(`Agent [${m.key}]: LDMP client connected`);
-
+  assign(m, res, { logger }) {
     m.ldmpConnectTs = m.versionTs;
+
+    logger.info('LDMP client connected');
   }
 };

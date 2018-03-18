@@ -1,14 +1,14 @@
 module.exports = {
+  healthCheck: require('./tasks/healthCheck'),
+  ldmpCheck: require('./tasks/ldmpCheck'),
   ldmpClient: require('./tasks/ldmpClient'),
   ldmpConnect: require('./tasks/ldmpConnect'),
   ldmpDisconnect: require('./tasks/ldmpDisconnect'),
   ldmpSpec: require('./tasks/ldmpSpec'),
   ldmpSpecify: require('./tasks/ldmpSpecify'),
-  ldmpWatch: require('./tasks/ldmpWatch'),
-  recordMissing: require('./tasks/recordMissing'),
   sources: require('./tasks/sources'),
   stan: require('./tasks/stan'),
-  stanWatch: require('./tasks/stanWatch'),
+  stanCheck: require('./tasks/stanCheck'),
   stateBookmarks: require('./tasks/stateBookmarks'),
   versionTs: require('./tasks/versionTs')
 }

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * Update state.bookmarks with a snapshot of current bookmarks.
@@ -6,19 +6,21 @@
 
 module.exports = {
   guard(m) {
-    return !m.stateBookmarksReady && m.bookmarks;
+    return !m.stateBookmarksError && !m.stateBookmarksReady && m.bookmarks;
   },
 
-  execute() {
-    return true;
-  },
-
-  assign(m) {
-    m.state.bookmarks = Object.keys(m.bookmarks).map(key => {
+  execute(m) {
+    return Object.keys(m.bookmarks).map(key => {
       return {
         key,
         value: m.bookmarks[key]
       };
     });
+  },
+
+  assign(m, res, { logger }) {
+    m.state.bookmarks = res;
+
+    logger.info('Bookmarks assigned');
   }
 };
