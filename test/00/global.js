@@ -17,7 +17,7 @@ app.set('clients', {
     }
   },
   stan: {
-    client: 'test-client',
+    client: 'test-csi-{key}',
     cluster: 'test-cluster',
     opts: {
       maxPubAcksInflight: 3,

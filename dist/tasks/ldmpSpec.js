@@ -12,7 +12,7 @@ module.exports = {
   },
 
   execute(m) {
-    return Object.keys(m.sources).map(sourceKey => {
+    return m.sourceKeys.map(sourceKey => {
       const { spec_options: options, station, table } = m.sources[sourceKey];
 
       const spec = Object.assign({

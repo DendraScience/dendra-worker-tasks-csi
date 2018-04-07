@@ -9,8 +9,10 @@ module.exports = {
     return !m.ldmpSpecifyError && m.ldmpConnectTs === m.versionTs && m.ldmpSpecifyTs !== m.versionTs;
   },
 
-  execute(m, { logger }) {
+  async execute(m, { logger }) {
     logger.info('LDMP client sending spec');
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     return m.private.ldmpClient.specify(m.ldmpSpec);
   },

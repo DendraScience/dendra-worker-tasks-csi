@@ -13,9 +13,13 @@ module.exports = {
 
   execute(m, { logger }) {
     const cfg = m.$app.get('clients').stan;
-    const stan = STAN.connect(cfg.cluster, cfg.client, cfg.opts || {});
+    const client = cfg.client.replace(/{([.\w]+)}/g, (_, k) => m[k]);
+    const stan = STAN.connect(cfg.cluster, client, cfg.opts || {});
 
-    logger.info('NATS Streaming connecting');
+    logger.info('NATS Streaming connecting', {
+      client,
+      cluster: cfg.cluster
+    });
 
     return new Promise((resolve, reject) => {
       stan.once('connect', () => {
@@ -39,7 +43,7 @@ module.exports = {
       m.stanConnected = false;
     });
     res.on('error', err => {
-      logger.info('NATS Streaming error', err);
+      logger.error('NATS Streaming error', err);
     });
 
     m.private.stan = res;

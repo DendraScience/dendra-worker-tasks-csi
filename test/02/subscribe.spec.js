@@ -4,7 +4,7 @@
 
 const STAN = require('node-nats-streaming')
 
-describe('Subscribe to imported records', function () {
+describe.skip('Subscribe to imported records', function () {
   this.timeout(30000)
 
   let messages = []
@@ -14,7 +14,7 @@ describe('Subscribe to imported records', function () {
 
   before(function () {
     const cfg = main.app.get('clients').stan
-    stan = STAN.connect(cfg.cluster, cfg.client, cfg.opts || {})
+    stan = STAN.connect(cfg.cluster, 'test-csi-subscribe', cfg.opts || {})
 
     return new Promise((resolve, reject) => {
       stan.once('connect', () => {
@@ -42,10 +42,8 @@ describe('Subscribe to imported records', function () {
   it('should subscribe', function () {
     const opts = stan.subscriptionOptions()
 
-    opts.setMaxInFlight(10)
-    opts.setManualAckMode(true)
     opts.setDeliverAllAvailable()
-    opts.setAckWait(60 * 1000) //60s
+    opts.setMaxInFlight(10)
 
     sub = stan.subscribe('csi.import.v1.out', opts)
 

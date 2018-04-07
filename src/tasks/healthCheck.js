@@ -17,9 +17,12 @@ module.exports = {
 
     if (threshold && m.healthCheckTs && ((now - m.healthCheckTs) > threshold * 1000)) {
       logger.error('Health check threshold exceeded')
+      logger.info('LDMP client disconnecting')
 
-      delete m.ldmpConnectTs
-      delete m.ldmpSpecifyTs
+      return m.private.ldmpClient.disconnect().catch(err => {
+        logger.error('LDMP client disconnect error', err)
+        throw err
+      })
     } else {
       logger.info('Health check passed')
     }

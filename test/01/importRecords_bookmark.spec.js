@@ -19,6 +19,7 @@ describe('importRecords tasks w/ bookmark', function () {
       sources: [
         {
           context: {
+            org_slug: 'ucnrs',
             some_value: 'value'
           },
           description: 'Test Quail Ridge',
@@ -75,7 +76,7 @@ describe('importRecords tasks w/ bookmark', function () {
   it('should import', function () {
     tasks = require('../../dist').importRecords
 
-    expect(tasks).to.have.property('ldmpClient')
+    expect(tasks).to.have.property('sources')
   })
 
   it('should create machine', function () {
@@ -106,15 +107,15 @@ describe('importRecords tasks w/ bookmark', function () {
       expect(model).to.have.property('sourcesReady', true)
       expect(model).to.have.property('stanCheckReady', false)
       expect(model).to.have.property('stanReady', true)
-      expect(model).to.have.property('stateBookmarksReady', false)
+      expect(model).to.have.property('stateBookmarksReady') // Could be true or false
       expect(model).to.have.property('versionTsReady', false)
     })
   })
 
-  it('should import Quail Ridge TenMin for 5 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
+  it('should import Quail Ridge TenMin for 15 seconds', function () {
+    return new Promise(resolve => setTimeout(resolve, 15000)).then(() => {
       // Check for bookmarks
-      expect(model).to.have.nested.property('bookmarks.test_quailridge$$TenMin')
+      expect(model).to.have.nested.property('bookmarks.test_quailridge$TenMin')
     })
   })
 
@@ -139,13 +140,12 @@ describe('importRecords tasks w/ bookmark', function () {
       expect(model).to.have.property('versionTsReady', false)
 
       // Check for bookmarks in state
-      expect(model).to.have.nested.property('state.bookmarks.0.key', 'test_quailridge$$TenMin')
+      expect(model).to.have.nested.property('state.bookmarks.0.key', 'test_quailridge$TenMin')
     })
   })
 
   it('should reconfigure for state change', function () {
     const now = new Date()
-    const bookmark = model.state.bookmarks.find(bm => bm.key === 'test_quailridge$$TenMin')
 
     model.scratch = {}
     model.state.sources[0].spec_options = {
@@ -172,15 +172,17 @@ describe('importRecords tasks w/ bookmark', function () {
       expect(model).to.have.property('versionTsReady', false)
 
       // Check ldmpSpec
+      const bookmark = model.state.bookmarks.find(bm => bm.key === 'test_quailridge$TenMin')
+
       expect(model).to.have.nested.property('ldmpSpec.0.time_stamp', moment(bookmark.value).utc().format('YYYY MM DD HH:mm:ss.SS'))
       expect(model).to.have.nested.property('ldmpSpec.0.start_option', 'at-time')
     })
   })
 
-  it('should import Quail Ridge Status for 5 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
+  it('should import Quail Ridge Status for 15 seconds', function () {
+    return new Promise(resolve => setTimeout(resolve, 15000)).then(() => {
       // Check for bookmarks
-      expect(model).to.have.nested.property('bookmarks.test_quailridge$$TenMin')
+      expect(model).to.have.nested.property('bookmarks.test_quailridge$TenMin')
     })
   })
 })

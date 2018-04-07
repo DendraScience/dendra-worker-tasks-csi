@@ -17,6 +17,7 @@ describe('importRecords tasks', function () {
       sources: [
         {
           context: {
+            org_slug: 'ucnrs',
             some_value: 'value'
           },
           description: 'Test Quail Ridge',
@@ -73,7 +74,7 @@ describe('importRecords tasks', function () {
   it('should import', function () {
     tasks = require('../../dist').importRecords
 
-    expect(tasks).to.have.property('ldmpClient')
+    expect(tasks).to.have.property('sources')
   })
 
   it('should create machine', function () {
@@ -104,18 +105,18 @@ describe('importRecords tasks', function () {
       expect(model).to.have.property('sourcesReady', true)
       expect(model).to.have.property('stanCheckReady', false)
       expect(model).to.have.property('stanReady', true)
-      expect(model).to.have.property('stateBookmarksReady', false)
+      expect(model).to.have.property('stateBookmarksReady') // Could be true or false
       expect(model).to.have.property('versionTsReady', false)
 
       // Check for defaults
-      expect(model).to.have.nested.property('sources.test_quailridge$$TenMin.some_default', 'default')
+      expect(model).to.have.nested.property('sources.test_quailridge$TenMin.some_default', 'default')
     })
   })
 
-  it('should import Quail Ridge TenMin for 5 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
+  it('should import Quail Ridge TenMin for 15 seconds', function () {
+    return new Promise(resolve => setTimeout(resolve, 15000)).then(() => {
       // Check for bookmarks
-      expect(model).to.have.nested.property('bookmarks.test_quailridge$$TenMin')
+      expect(model).to.have.nested.property('bookmarks.test_quailridge$TenMin')
     })
   })
 
@@ -126,9 +127,13 @@ describe('importRecords tasks', function () {
     model.state = {
       _id: 'taskMachine-importRecords-current',
       health_check_threshold: 1200,
+      source_defaults: {
+        some_default: 'default'
+      },
       sources: [
         {
           context: {
+            org_slug: 'ucnrs',
             some_value: 'value'
           },
           description: 'Test Quail Ridge',
@@ -142,9 +147,6 @@ describe('importRecords tasks', function () {
           table: 'Status'
         }
       ],
-      source_defaults: {
-        some_default: 'default'
-      },
       created_at: now,
       updated_at: now
     }
@@ -163,18 +165,18 @@ describe('importRecords tasks', function () {
       expect(model).to.have.property('sourcesReady', true)
       expect(model).to.have.property('stanCheckReady', false)
       expect(model).to.have.property('stanReady', false)
-      expect(model).to.have.property('stateBookmarksReady', true)
+      expect(model).to.have.property('stateBookmarksReady') // Could be true or false
       expect(model).to.have.property('versionTsReady', false)
 
       // Check for defaults
-      expect(model).to.have.nested.property('sources.test_quailridge$$Status.some_default', 'default')
+      expect(model).to.have.nested.property('sources.test_quailridge$Status.some_default', 'default')
     })
   })
 
-  it('should import Quail Ridge Status for 5 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
+  it('should import Quail Ridge Status for 15 seconds', function () {
+    return new Promise(resolve => setTimeout(resolve, 15000)).then(() => {
       // Check for bookmarks
-      expect(model).to.have.nested.property('bookmarks.test_quailridge$$Status')
+      expect(model).to.have.nested.property('bookmarks.test_quailridge$Status')
     })
   })
 })

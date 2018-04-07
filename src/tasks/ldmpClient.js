@@ -5,26 +5,25 @@
 const ldmp = require('@dendra-science/csi-ldmp-client')
 const moment = require('moment')
 
-async function publish ({logger, m, rec, recordNumber, source, stan}) {
-  const subject = source.pub_to_subject
+async function processItem (
+  {context, pubSubject, rec, recordNumber, stan},
+  {logger}) {
+  /*
+    Prepare outbound message and publish.
+   */
 
-  logger.info('Publishing', {recordNumber, subject})
+  const msgStr = JSON.stringify({
+    context: Object.assign({}, context, {
+      imported_at: new Date()
+    }),
+    payload: rec
+  })
 
-  try {
-    const msgStr = JSON.stringify({
-      context: Object.assign({
-        imported_at: new Date()
-      }, source.context),
-      payload: rec
-    })
-    const guid = await new Promise((resolve, reject) => {
-      stan.publish(subject, msgStr, (err, guid) => err ? reject(err) : resolve(guid))
-    })
+  const guid = await new Promise((resolve, reject) => {
+    stan.publish(pubSubject, msgStr, (err, guid) => err ? reject(err) : resolve(guid))
+  })
 
-    logger.info('Published', {recordNumber, guid, subject})
-  } catch (err) {
-    logger.error('Publish error', {recordNumber, err, subject})
-  }
+  logger.info('Published', {recordNumber, pubSubject, guid})
 }
 
 function handleRecord (rec) {
@@ -42,43 +41,39 @@ function handleRecord (rec) {
     return
   }
 
+  logger.info('Record received', {recordNumber})
+
+  if (m.ldmpSpecifyTs !== m.versionTs) {
+    logger.info('Record deferred', {recordNumber})
+    return
+  }
+
   try {
-    const {ldmpClient, stan} = m.private
-
-    logger.info('Record received', {recordNumber})
-
-    if (m.ldmpSpecifyTs !== m.versionTs) {
-      logger.info('Record deferred', {recordNumber})
-      return
-    }
-
     const recordDate = moment(rec.timeString).utcOffset(0, true).utc()
 
     if (!(recordDate && recordDate.isValid())) throw new Error('Invalid time format')
 
-    const sourceKey = `${rec.station}$$${rec.table}`
+    const sourceKey = `${rec.station.replace(/\W/g, '_')}$${rec.table.replace(/\W/g, '_')}`
     const source = m.sources[sourceKey]
 
     if (!source) throw new Error(`No source found for '${sourceKey}'`)
 
-    publish({logger, m, rec, recordNumber, source, stan}).then(() => {
-      logger.info('Record ack', {recordNumber})
+    const {ldmpClient, stan} = m.private
+    const {
+      context,
+      pub_to_subject: pubSubject
+    } = source
 
-      return ldmpClient.ack()
-    }).catch(err => {
-      logger.error('Record ack error', {recordNumber, err})
-    }).then(() => {
-      logger.info('Record ack sent', {recordNumber})
-
+    processItem({context, pubSubject, rec, recordNumber, stan}, this).then(() => ldmpClient.ack()).then(() => {
       m.healthCheckTs = new Date()
 
       if (!m.bookmarks) m.bookmarks = {}
       m.bookmarks[sourceKey] = recordDate.valueOf()
     }).catch(err => {
-      logger.error('Record bookmark error', {recordNumber, err})
+      logger.error('Record processing error', {recordNumber, err, rec})
     })
   } catch (err) {
-    logger.error('Record error', {recordNumber, err})
+    logger.error('Record error', {recordNumber, err, rec})
   }
 }
 
@@ -89,13 +84,27 @@ module.exports = {
   },
 
   execute (m) {
-    const cfg = m.$app.get('clients').ldmp
+    const cfg = Object.assign({
+      opts: {}
+    }, m.$app.get('clients').ldmp, m.props.ldmp)
 
-    return new ldmp.LDMPClient(cfg.opts || {})
+    return new ldmp.LDMPClient(cfg.opts)
   },
 
   assign (m, res, {logger}) {
-    res.on('record', handleRecord.bind({logger, m}))
+    res.on('closed', () => {
+      logger.info('LDMP client closed')
+    })
+    res.on('connected', () => {
+      logger.info('LDMP client connected')
+    })
+    res.on('disconnected', () => {
+      logger.info('LDMP client disconnected')
+    })
+    res.on('record', handleRecord.bind({
+      logger,
+      m
+    }))
 
     m.private.ldmpClient = res
 
