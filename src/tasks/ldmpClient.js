@@ -68,7 +68,11 @@ function handleRecord (rec) {
       m.healthCheckTs = new Date()
 
       if (!m.bookmarks) m.bookmarks = {}
-      m.bookmarks[sourceKey] = recordDate.valueOf()
+
+      const curVal = m.bookmarks[sourceKey]
+      const newVal = recordDate.valueOf()
+
+      m.bookmarks[sourceKey] = typeof curVal === 'undefined' ? newVal : Math.max(curVal, newVal)
     }).catch(err => {
       logger.error('Record processing error', {recordNumber, err, rec})
     })

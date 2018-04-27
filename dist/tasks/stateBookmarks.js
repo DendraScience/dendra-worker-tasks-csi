@@ -6,7 +6,7 @@
 
 module.exports = {
   guard(m) {
-    return !m.stateBookmarksError && !m.stateBookmarksReady && m.bookmarks;
+    return !m.stateBookmarksError && !m.stateBookmarksReady && m.private.ldmpClient && m.private.ldmpClient.isConnected && m.ldmpSpecifyTs === m.versionTs && m.bookmarks;
   },
 
   execute(m) {

@@ -21,6 +21,8 @@ module.exports = {
     m.healthCheckTs = new Date()
     m.ldmpSpecifyTs = m.versionTs
 
+    delete m.bookmarks
+
     logger.info('LDMP client sent spec', res)
   }
 }

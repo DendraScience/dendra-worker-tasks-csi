@@ -8,15 +8,24 @@ module.exports = {
       m.private.stan && !m.stanConnected
   },
 
-  execute (m) { return true },
+  execute (m, {logger}) {
+    if (m.private.ldmpClient && m.private.ldmpClient.isConnected) {
+      logger.info('LDMP client disconnecting')
+
+      return m.private.ldmpClient.disconnect().catch(err => {
+        logger.error('LDMP client disconnect error', err)
+        // Intentionally eat the error
+      })
+    }
+
+    return true
+  },
 
   assign (m, res, {logger}) {
     m.private.stan.removeAllListeners()
 
     delete m.private.stan
     delete m.stanConnected
-    delete m.ldmpConnectTs
-    delete m.ldmpSpecifyTs
 
     logger.error('NATS Streaming reset')
   }
