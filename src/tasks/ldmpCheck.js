@@ -14,6 +14,8 @@ module.exports = {
   assign (m, res, {logger}) {
     delete m.ldmpConnectTs
     delete m.ldmpSpecifyTs
+    delete m.ldmpSpecTs
+    delete m.sourcesTs
 
     logger.error('LDMP connection reset')
   }

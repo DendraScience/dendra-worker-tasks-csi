@@ -1,6 +1,6 @@
 {
   "name": "@dendra-science/worker-tasks-csi",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Worker tasks for importing CSI (Campbell Scientific, Inc.) data.",
   "license": "BSD-2-Clause-FreeBSD",
   "author": "J. Scott Smith <scott@newleafsolutionsinc.com>",
