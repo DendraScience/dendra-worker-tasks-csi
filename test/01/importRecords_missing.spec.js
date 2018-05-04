@@ -123,8 +123,8 @@ describe('importRecords tasks w/ records missing', function () {
       expect(model).to.have.property('ldmpConnectReady', true)
       expect(model).to.have.property('ldmpDisconnectReady', false)
       expect(model).to.have.property('ldmpSpecifyReady', true)
-      expect(model).to.have.property('ldmpSpecReady', false)
-      expect(model).to.have.property('sourcesReady', false)
+      expect(model).to.have.property('ldmpSpecReady', true)
+      expect(model).to.have.property('sourcesReady', true)
       expect(model).to.have.property('stanCheckReady', false)
       expect(model).to.have.property('stanReady', false)
       expect(model).to.have.property('stateBookmarksReady') // Could be true or false

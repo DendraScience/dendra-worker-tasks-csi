@@ -65,6 +65,11 @@ function handleRecord(rec) {
     } = source;
 
     processItem({ context, pubSubject, rec, recordNumber, stan }, this).then(() => ldmpClient.ack()).then(() => {
+      if (m.ldmpSpecifyTs !== m.versionTs) {
+        logger.info('Record post-processing deferred', { recordNumber });
+        return;
+      }
+
       m.healthCheckTs = new Date();
 
       if (!m.bookmarks) m.bookmarks = {};
