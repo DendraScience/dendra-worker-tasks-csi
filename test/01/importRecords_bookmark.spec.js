@@ -155,6 +155,7 @@ describe('importRecords tasks w/ bookmark', function () {
     model.state.updated_at = now
 
     const bookmark = model.state.bookmarks.find(bm => bm.key === 'test_quailridge$TenMin')
+    const bookmarkValue = bookmark.value
 
     return machine.clear().start().then(success => {
       expect(success).to.be.true
@@ -174,7 +175,7 @@ describe('importRecords tasks w/ bookmark', function () {
       expect(model).to.have.property('versionTsReady', false)
 
       // Check ldmpSpec
-      expect(model).to.have.nested.property('ldmpSpec.0.time_stamp', moment(bookmark.value).utc().format('YYYY MM DD HH:mm:ss.SS'))
+      expect(model).to.have.nested.property('ldmpSpec.0.time_stamp', moment(bookmarkValue).utc().format('YYYY MM DD HH:mm:ss.SS'))
       expect(model).to.have.nested.property('ldmpSpec.0.start_option', 'at-time')
     })
   })
