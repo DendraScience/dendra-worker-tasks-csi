@@ -1,7 +1,7 @@
 {
   "name": "@dendra-science/worker-tasks-csi",
-  "version": "0.0.16",
-  "description": "Worker tasks for loading CSI (Campbell Scientific, Inc.) data.",
+  "version": "0.1.4",
+  "description": "Worker tasks for importing CSI (Campbell Scientific, Inc.) data.",
   "license": "BSD-2-Clause-FreeBSD",
   "author": "J. Scott Smith <scott@newleafsolutionsinc.com>",
   "main": "dist/index.js",
@@ -20,30 +20,30 @@
     "test:watch": "chokidar --initial 'src/**/*.js' 'test/**/*.js' -c 'npm run test:build'"
   },
   "engines": {
-    "node": ">=6.11.0"
+    "node": ">=8.7.0"
   },
   "dependencies": {
     "@dendra-science/csi-ldmp-client": "0.0.3",
-    "@dendra-science/utils-moment": "0.0.1",
-    "moment": "^2.20.1",
-    "request": "^2.82.0"
+    "moment": "^2.22.1",
+    "node-nats-streaming": "0.0.28"
   },
   "devDependencies": {
-    "@dendra-science/task-machine": "0.0.2",
+    "@dendra-science/task-machine": "0.1.2",
+    "ajv": "^5.5.2",
     "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
+    "babel-core": "^6.26.2",
     "babel-preset-env": "^1.6.1",
     "chai": "^4.1.1",
-    "eslint": "^4.14.0",
-    "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-node": "^5.2.1",
-    "eslint-plugin-promise": "^3.6.0",
-    "eslint-plugin-standard": "^3.0.1",
-    "feathers": "^2.2.3",
+    "eslint": "^4.19.1",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-promise": "^3.7.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "feathers": "^2.2.4",
     "feathers-hooks": "^2.1.2",
     "feathers-rest": "^1.8.1",
-    "mocha": "^4.1.0"
+    "mocha": "^5.1.1"
   },
   "optionalDependencies": {
     "fsevents": "^1.0.0"
