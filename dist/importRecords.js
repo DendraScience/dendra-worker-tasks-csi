@@ -8,9 +8,9 @@ module.exports = {
   ldmpDisconnect: require('./tasks/ldmpDisconnect'),
   ldmpSpec: require('./tasks/ldmpSpec'),
   ldmpSpecify: require('./tasks/ldmpSpecify'),
+  saveBookmarks: require('./tasks/saveBookmarks'),
   sources: require('./tasks/sources'),
   stan: require('./tasks/stan'),
   stanCheck: require('./tasks/stanCheck'),
-  stateBookmarks: require('./tasks/stateBookmarks'),
   versionTs: require('./tasks/versionTs')
 };

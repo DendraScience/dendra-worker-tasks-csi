@@ -27,6 +27,7 @@ module.exports = {
 
     delete m.private.stan;
     delete m.stanConnected;
+    delete m.stanTs;
 
     logger.error('NATS Streaming reset');
   }

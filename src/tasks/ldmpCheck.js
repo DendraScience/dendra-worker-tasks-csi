@@ -11,7 +11,7 @@ module.exports = {
 
   execute (m) { return true },
 
-  assign (m, res, {logger}) {
+  assign (m, res, { logger }) {
     delete m.ldmpConnectTs
     delete m.ldmpSpecifyTs
     delete m.ldmpSpecTs

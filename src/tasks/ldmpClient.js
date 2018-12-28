@@ -6,8 +6,8 @@ const ldmp = require('@dendra-science/csi-ldmp-client')
 const moment = require('moment')
 
 async function processItem (
-  {context, pubSubject, rec, recordNumber, stan},
-  {logger}) {
+  { context, pubSubject, rec, recordNumber, stan },
+  { logger }) {
   /*
     Prepare outbound message and publish.
    */
@@ -23,28 +23,28 @@ async function processItem (
     stan.publish(pubSubject, msgStr, (err, guid) => err ? reject(err) : resolve(guid))
   })
 
-  logger.info('Published', {recordNumber, pubSubject, guid})
+  logger.info('Published', { recordNumber, pubSubject, guid })
 }
 
 function handleRecord (rec) {
-  const {logger, m} = this
+  const { logger, m } = this
 
   if (!rec) {
     logger.error('Record undefined')
     return
   }
 
-  const {recordNumber} = rec
+  const { recordNumber } = rec
 
   if (typeof recordNumber === 'undefined') {
     logger.error('Record number undefined')
     return
   }
 
-  logger.info('Record received', {recordNumber})
+  logger.info('Record received', { recordNumber })
 
   if (m.ldmpSpecifyTs !== m.versionTs) {
-    logger.info('Record deferred', {recordNumber})
+    logger.info('Record deferred', { recordNumber })
     return
   }
 
@@ -58,19 +58,19 @@ function handleRecord (rec) {
 
     if (!source) throw new Error(`No source found for '${sourceKey}'`)
 
-    const {ldmpClient, stan} = m.private
+    const { ldmpClient, stan } = m.private
     const {
       context,
       pub_to_subject: pubSubject
     } = source
 
-    processItem({context, pubSubject, rec, recordNumber, stan}, this).then(() => ldmpClient.ack()).then(() => {
+    processItem({ context, pubSubject, rec, recordNumber, stan }, this).then(() => ldmpClient.ack()).then(() => {
       if (m.ldmpSpecifyTs !== m.versionTs) {
-        logger.info('Record post-processing deferred', {recordNumber})
+        logger.info('Record post-processing deferred', { recordNumber })
         return
       }
 
-      m.healthCheckTs = new Date()
+      m.healthCheckTs = (new Date()).getTime()
 
       if (!m.bookmarks) m.bookmarks = {}
 
@@ -79,10 +79,10 @@ function handleRecord (rec) {
 
       m.bookmarks[sourceKey] = typeof curVal === 'undefined' ? newVal : Math.max(curVal, newVal)
     }).catch(err => {
-      logger.error('Record processing error', {recordNumber, err, rec})
+      logger.error('Record processing error', { recordNumber, err, rec })
     })
   } catch (err) {
-    logger.error('Record error', {recordNumber, err, rec})
+    logger.error('Record error', { recordNumber, err, rec })
   }
 }
 
@@ -100,7 +100,7 @@ module.exports = {
     return new ldmp.LDMPClient(cfg.opts)
   },
 
-  assign (m, res, {logger}) {
+  assign (m, res, { logger }) {
     res.on('closed', () => {
       logger.info('LDMP client closed')
     })

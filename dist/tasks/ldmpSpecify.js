@@ -18,7 +18,7 @@ module.exports = {
   },
 
   assign(m, res, { logger }) {
-    m.healthCheckTs = new Date();
+    m.healthCheckTs = new Date().getTime();
     m.ldmpSpecifyTs = m.versionTs;
 
     delete m.bookmarks;

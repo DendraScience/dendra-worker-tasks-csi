@@ -70,7 +70,7 @@ function handleRecord(rec) {
         return;
       }
 
-      m.healthCheckTs = new Date();
+      m.healthCheckTs = new Date().getTime();
 
       if (!m.bookmarks) m.bookmarks = {};
 

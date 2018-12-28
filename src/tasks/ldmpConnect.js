@@ -11,7 +11,7 @@ module.exports = {
       (m.ldmpConnectTs !== m.versionTs)
   },
 
-  async execute (m, {logger}) {
+  async execute (m, { logger }) {
     const client = m.private.ldmpClient
 
     logger.info('LDMP client connecting', {
@@ -29,7 +29,7 @@ module.exports = {
     }
   },
 
-  assign (m, res, {logger}) {
+  assign (m, res, { logger }) {
     res.on('error', err => {
       logger.error('LDMP client socket error', err)
     })

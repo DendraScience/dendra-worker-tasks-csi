@@ -9,7 +9,7 @@ module.exports = {
       (m.ldmpSpecifyTs !== m.versionTs)
   },
 
-  async execute (m, {logger}) {
+  async execute (m, { logger }) {
     logger.info('LDMP client sending spec')
 
     await new Promise(resolve => setTimeout(resolve, 2000))
@@ -17,8 +17,8 @@ module.exports = {
     return m.private.ldmpClient.specify(m.ldmpSpec)
   },
 
-  assign (m, res, {logger}) {
-    m.healthCheckTs = new Date()
+  assign (m, res, { logger }) {
+    m.healthCheckTs = (new Date()).getTime()
     m.ldmpSpecifyTs = m.versionTs
 
     delete m.bookmarks

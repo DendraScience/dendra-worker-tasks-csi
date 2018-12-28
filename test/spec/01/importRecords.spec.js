@@ -4,8 +4,8 @@
 
 const moment = require('moment')
 
-describe('importRecords tasks w/ bookmark', function () {
-  this.timeout(30000)
+describe('importRecords tasks', function () {
+  this.timeout(60000)
 
   const now = new Date()
   const model = {
@@ -18,18 +18,19 @@ describe('importRecords tasks w/ bookmark', function () {
       },
       sources: [
         {
+          backfill: {
+            hours: 72
+          },
           context: {
             org_slug: 'ucnrs',
             some_value: 'value'
           },
-          description: 'Test Quail Ridge',
-          pub_to_subject: 'csi.import.v1.out',
+          description: 'Test Angelo',
+          pub_to_subject: 'csi.importRecords.out',
           spec_options: {
-            backfill_seconds: 1296000,
-            order_option: 'collected',
-            start_option: 'relative-to-newest'
+            order_option: 'logged-with-holes'
           },
-          station: 'test_quailridge',
+          station: 'ucac_angelo',
           table: 'TenMin'
         }
       ],
@@ -59,6 +60,7 @@ describe('importRecords tasks w/ bookmark', function () {
 
   let tasks
   let machine
+  let bookmark
 
   after(function () {
     return Promise.all([
@@ -74,7 +76,7 @@ describe('importRecords tasks w/ bookmark', function () {
   })
 
   it('should import', function () {
-    tasks = require('../../dist').importRecords
+    tasks = require('../../../dist').importRecords
 
     expect(tasks).to.have.property('sources')
   })
@@ -90,10 +92,11 @@ describe('importRecords tasks w/ bookmark', function () {
     expect(machine).to.have.property('model')
   })
 
-  it('should run for Quail Ridge TenMin', function () {
+  it('should run', function () {
     model.scratch = {}
 
     return machine.clear().start().then(success => {
+      /* eslint-disable-next-line no-unused-expressions */
       expect(success).to.be.true
 
       // Verify task state
@@ -104,25 +107,26 @@ describe('importRecords tasks w/ bookmark', function () {
       expect(model).to.have.property('ldmpDisconnectReady', false)
       expect(model).to.have.property('ldmpSpecifyReady', true)
       expect(model).to.have.property('ldmpSpecReady', true)
+      expect(model).to.have.property('saveBookmarksReady') // Could be true or false
       expect(model).to.have.property('sourcesReady', true)
       expect(model).to.have.property('stanCheckReady', false)
       expect(model).to.have.property('stanReady', true)
-      expect(model).to.have.property('stateBookmarksReady') // Could be true or false
       expect(model).to.have.property('versionTsReady', false)
+
+      // Check for defaults
+      expect(model).to.have.nested.property('sources.ucac_angelo$TenMin.some_default', 'default')
     })
   })
 
-  it('should import Quail Ridge TenMin for 15 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 15000)).then(() => {
-      // Check for bookmarks
-      expect(model).to.have.nested.property('bookmarks.test_quailridge$TenMin')
-    })
+  it('should wait for 5 seconds to collect data', function () {
+    return new Promise(resolve => setTimeout(resolve, 5000))
   })
 
-  it('should assign bookmarks in state', function () {
+  it('should save bookmarks', function () {
     model.scratch = {}
 
     return machine.clear().start().then(success => {
+      /* eslint-disable-next-line no-unused-expressions */
       expect(success).to.be.true
 
       // Verify task state
@@ -133,31 +137,32 @@ describe('importRecords tasks w/ bookmark', function () {
       expect(model).to.have.property('ldmpDisconnectReady', false)
       expect(model).to.have.property('ldmpSpecifyReady', false)
       expect(model).to.have.property('ldmpSpecReady', false)
+      expect(model).to.have.property('saveBookmarksReady', true)
       expect(model).to.have.property('sourcesReady', false)
       expect(model).to.have.property('stanCheckReady', false)
       expect(model).to.have.property('stanReady', false)
-      expect(model).to.have.property('stateBookmarksReady', true)
       expect(model).to.have.property('versionTsReady', false)
-
-      // Check for bookmarks in state
-      expect(model).to.have.nested.property('state.bookmarks.0.key', 'test_quailridge$TenMin')
     })
   })
 
-  it('should reconfigure for state change', function () {
+  it('should get saved bookmarks', function () {
+    return main.app.service('/state/docs').get('importRecords-bookmarks').then(doc => {
+      expect(doc).to.have.property('_id', 'importRecords-bookmarks')
+      expect(doc).to.have.nested.property('bookmarks.0.key', 'ucac_angelo$TenMin')
+      expect(doc).to.have.nested.property('bookmarks.0.value').above(0)
+
+      bookmark = doc.bookmarks[0]
+    })
+  })
+
+  it('should reconfigure', function () {
     const now = new Date()
 
     model.scratch = {}
-    model.state.sources[0].spec_options = {
-      order_option: 'collected'
-    }
     model.state.created_at = now
-    model.state.updated_at = now
-
-    const bookmark = model.state.bookmarks.find(bm => bm.key === 'test_quailridge$TenMin')
-    const bookmarkValue = bookmark.value
 
     return machine.clear().start().then(success => {
+      /* eslint-disable-next-line no-unused-expressions */
       expect(success).to.be.true
 
       // Verify task state
@@ -168,22 +173,23 @@ describe('importRecords tasks w/ bookmark', function () {
       expect(model).to.have.property('ldmpDisconnectReady', true)
       expect(model).to.have.property('ldmpSpecifyReady', true)
       expect(model).to.have.property('ldmpSpecReady', true)
+      expect(model).to.have.property('saveBookmarksReady') // Could be true or false
       expect(model).to.have.property('sourcesReady', true)
       expect(model).to.have.property('stanCheckReady', false)
       expect(model).to.have.property('stanReady', false)
-      expect(model).to.have.property('stateBookmarksReady', true)
       expect(model).to.have.property('versionTsReady', false)
-
-      // Check ldmpSpec
-      expect(model).to.have.nested.property('ldmpSpec.0.time_stamp', moment(bookmarkValue).utc().format('YYYY MM DD HH:mm:ss.SS'))
-      expect(model).to.have.nested.property('ldmpSpec.0.start_option', 'at-time')
     })
   })
 
-  it('should import Quail Ridge Status for 15 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 15000)).then(() => {
-      // Check for bookmarks
-      expect(model).to.have.nested.property('bookmarks.test_quailridge$TenMin')
-    })
+  it('should use bookmark to assign spec', function () {
+    expect(model.ldmpSpec).to.have.nested.property('0.time_stamp', moment(bookmark.value).utc().format('YYYY MM DD HH:mm:ss.SS'))
+  })
+
+  it('should wait for 5 seconds to collect data', function () {
+    return new Promise(resolve => setTimeout(resolve, 5000))
+  })
+
+  it('should defer records', function () {
+    delete model.versionTs
   })
 })

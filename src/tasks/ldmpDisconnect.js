@@ -9,7 +9,7 @@ module.exports = {
       (m.versionTs > m.ldmpConnectTs)
   },
 
-  execute (m, {logger}) {
+  execute (m, { logger }) {
     logger.info('LDMP client disconnecting')
 
     return m.private.ldmpClient.disconnect().catch(err => {

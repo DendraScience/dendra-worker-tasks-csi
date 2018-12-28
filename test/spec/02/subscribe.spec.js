@@ -4,11 +4,10 @@
 
 const STAN = require('node-nats-streaming')
 
-describe.skip('Subscribe to imported records', function () {
+describe('Subscribe to imported records', function () {
   this.timeout(30000)
 
-  let messages = []
-
+  let messages
   let stan
   let sub
 
@@ -41,25 +40,28 @@ describe.skip('Subscribe to imported records', function () {
 
   it('should subscribe', function () {
     const opts = stan.subscriptionOptions()
-
     opts.setDeliverAllAvailable()
-    opts.setMaxInFlight(10)
+    opts.setDurableName('importRecords')
 
-    sub = stan.subscribe('csi.import.v1.out', opts)
-
+    sub = stan.subscribe('csi.importRecords.out', opts)
+    messages = []
     sub.on('message', msg => {
-      messages.push(msg.getData())
+      messages.push(JSON.parse(msg.getData()))
     })
   })
 
-  it('should receive messages for 5 seconds', function () {
-    return new Promise(resolve => setTimeout(resolve, 5000)).then(() => {
-      return new Promise(resolve => {
-        sub.once('unsubscribed', resolve)
-        sub.unsubscribe()
-      })
-    }).then(() => {
-      expect(messages).to.have.lengthOf(10)
-    })
+  it('should wait for 5 seconds to collect messages', function () {
+    return new Promise(resolve => setTimeout(resolve, 5000))
+  })
+
+  it('should have imported messages', function () {
+    sub.removeAllListeners()
+
+    expect(messages).to.have.nested.property('0.context.org_slug', 'ucnrs')
+    expect(messages).to.have.nested.property('0.context.some_value', 'value')
+    expect(messages).to.have.nested.property('0.context.imported_at')
+    expect(messages).to.have.nested.property('0.payload.recordNumber')
+    expect(messages).to.have.nested.property('0.payload.station', 'ucac_angelo')
+    expect(messages).to.have.nested.property('0.payload.table', 'TenMin')
   })
 })
