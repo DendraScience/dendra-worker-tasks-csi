@@ -29,7 +29,8 @@ module.exports = {
         logger.info(`No state doc found for '${docId}'`)
       }
 
-      Object.keys(m.bookmarks).map(key => {
+      // Update bookmark values or add new bookmarks
+      Object.keys(m.bookmarks).forEach(key => {
         const bookmark = bookmarks.find(bm => bm.key === key)
         const value = m.bookmarks[key]
 
