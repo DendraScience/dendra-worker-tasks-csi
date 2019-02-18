@@ -58,13 +58,18 @@ function handleRecord(rec) {
 
     if (!source) throw new Error(`No source found for '${sourceKey}'`);
 
+    const ldmpAckDelay = m.state.ldmp_ack_delay | 0;
     const { ldmpClient, stan } = m.private;
     const {
       context,
       pub_to_subject: pubSubject
     } = source;
 
-    processItem({ context, pubSubject, rec, recordNumber, stan }, this).then(() => ldmpClient.ack()).then(() => {
+    processItem({ context, pubSubject, rec, recordNumber, stan }, this).then(() => {
+      return new Promise(resolve => setTimeout(resolve, ldmpAckDelay));
+    }).then(() => ldmpClient.ack()).then(() => {
+      logger.info('Record ack sent', { ldmpAckDelay, recordNumber });
+
       if (m.ldmpSpecifyTs !== m.versionTs) {
         logger.info('Record post-processing deferred', { recordNumber });
         return;
