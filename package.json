@@ -1,6 +1,6 @@
 {
   "name": "@dendra-science/worker-tasks-csi",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Worker tasks for importing CSI (Campbell Scientific, Inc.) data.",
   "license": "BSD-2-Clause-FreeBSD",
   "author": "J. Scott Smith <scott@newleafsolutionsinc.com>",
@@ -24,7 +24,7 @@
     "node": ">=8.7.0"
   },
   "dependencies": {
-    "@dendra-science/csi-ldmp-client": "0.0.3",
+    "@dendra-science/csi-ldmp-client": "git+https://github.com/DendraScience/csi-ldmp-client.git#a2348a6a5b675868945930b79167a0713cdeed15",
     "moment": "^2.24.0",
     "node-nats-streaming": "0.0.51"
   },
@@ -35,11 +35,11 @@
     "babel-core": "^6.26.3",
     "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
-    "eslint": "^5.14.1",
+    "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-import": "^2.17.3",
     "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-promise": "^4.1.1",
     "eslint-plugin-standard": "^4.0.0",
     "feathers": "^2.2.4",
     "feathers-hooks": "^2.1.2",
