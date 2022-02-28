@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@dendra-science/task-machine": "0.1.2",
-    "ajv": "^5.5.2",
+    "ajv": "^6.12.3",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-preset-env": "^1.7.0",
