@@ -1,9 +1,8 @@
-'use strict';
+"use strict";
 
 /**
  * Prepare model sources if not defined, or when new state is detected.
  */
-
 module.exports = {
   guard(m) {
     return !m.sourcesError && m.state.sources && m.state.sources.length > 0 && m.sourcesTs !== m.versionTs;
@@ -14,7 +13,6 @@ module.exports = {
       if (src.station && src.table) {
         const sourceKey = `${src.station.replace(/\W/g, '_')}$${src.table.replace(/\W/g, '_')}`;
         const source = Object.assign({}, m.state.source_defaults, src);
-
         if (source.pub_to_subject) sources[sourceKey] = source;
       }
 
@@ -22,11 +20,15 @@ module.exports = {
     }, {});
   },
 
-  assign(m, res, { logger }) {
+  assign(m, res, {
+    logger
+  }) {
     m.sourceKeys = Object.keys(res);
     m.sources = res;
     m.sourcesTs = m.versionTs;
-
-    logger.info('Sources ready', { sourceKeys: m.sourceKeys });
+    logger.info('Sources ready', {
+      sourceKeys: m.sourceKeys
+    });
   }
+
 };

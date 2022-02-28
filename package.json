@@ -1,6 +1,6 @@
 {
   "name": "@dendra-science/worker-tasks-csi",
-  "version": "0.3.1",
+  "version": "2.0.0",
   "description": "Worker tasks for importing CSI (Campbell Scientific, Inc.) data.",
   "license": "BSD-2-Clause-FreeBSD",
   "author": "J. Scott Smith <scott@newleafsolutionsinc.com>",
@@ -21,33 +21,31 @@
     "test:watch": "chokidar --initial 'src/**/*.js' 'test/**/*.js' -c 'npm run test:build'"
   },
   "engines": {
-    "node": ">=8.7.0"
+    "node": ">=12.14.x"
   },
   "dependencies": {
-    "@dendra-science/csi-ldmp-client": "git+https://github.com/DendraScience/csi-ldmp-client.git#a2348a6a5b675868945930b79167a0713cdeed15",
-    "moment": "^2.24.0",
-    "node-nats-streaming": "0.0.51"
+    "@dendra-science/csi-ldmp-client": "git+https://github.com/DendraScience/csi-ldmp-client.git#d8509f285bbe03811ba8d1bf072254feb4a7fb86",
+    "moment": "^2.29.1",
+    "node-nats-streaming": "0.3.2"
   },
   "devDependencies": {
-    "@dendra-science/task-machine": "0.1.2",
-    "ajv": "^5.5.2",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0",
+    "@babel/cli": "^7.13.14",
+    "@babel/core": "^7.13.14",
+    "@babel/preset-env": "^7.13.12",
+    "@dendra-science/task-machine": "2.5.0",
+    "@feathersjs/feathers": "^4.5.8",
     "chai": "^4.2.0",
-    "eslint": "^5.16.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.17.3",
-    "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.1.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "feathers": "^2.2.4",
-    "feathers-hooks": "^2.1.2",
-    "feathers-memory": "^3.0.2",
-    "feathers-rest": "^1.8.1",
-    "mocha": "^5.0.5"
+    "eslint": "^7.23.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^5.0.0",
+    "feathers-memory": "^4.1.0",
+    "mocha": "^8.1.3",
+    "prettier": "^2.1.1"
   },
-  "optionalDependencies": {
-    "fsevents": "^1.0.0"
-  }
+  "optionalDependencies": {}
 }

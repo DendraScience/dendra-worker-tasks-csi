@@ -1,18 +1,18 @@
-'use strict';
+"use strict";
 
 /**
  * Persist model bookmarks to a separate state doc.
  */
-
 module.exports = {
   guard(m) {
     return !m.saveBookmarksError && !m.saveBookmarksReady && m.private.ldmpClient && m.private.ldmpClient.isConnected && m.ldmpSpecifyTs === m.versionTs && m.bookmarks;
   },
 
-  async execute(m, { logger }) {
+  async execute(m, {
+    logger
+  }) {
     const docId = `${m.key}-bookmarks`;
     let doc;
-
     logger.info(`Saving bookmarks to '${docId}'`);
 
     try {
@@ -24,11 +24,10 @@ module.exports = {
         if (d.bookmarks) bookmarks.push(...d.bookmarks);
       } catch (err) {
         if (err.code !== 404) throw err;
-
         logger.info(`No state doc found for '${docId}'`);
-      }
+      } // Update bookmark values or add new bookmarks
 
-      // Update bookmark values or add new bookmarks
+
       Object.keys(m.bookmarks).forEach(key => {
         const bookmark = bookmarks.find(bm => bm.key === key);
         const value = m.bookmarks[key];
@@ -42,7 +41,6 @@ module.exports = {
           });
         }
       });
-
       logger.info(`Updating state doc '${docId}'`);
 
       try {
@@ -52,13 +50,11 @@ module.exports = {
         });
       } catch (err) {
         if (err.code !== 404) throw err;
-
         logger.info(`No state doc found for '${docId}'`);
       }
 
       if (!doc) {
         logger.info(`Creating state doc '${docId}'`);
-
         doc = await docService.create({
           _id: docId,
           bookmarks
@@ -72,7 +68,10 @@ module.exports = {
     return doc;
   },
 
-  assign(m, res, { logger }) {
+  assign(m, res, {
+    logger
+  }) {
     logger.info(`Saved (${res.bookmarks.length}) bookmark(s)`);
   }
+
 };

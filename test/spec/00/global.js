@@ -1,5 +1,5 @@
 const chai = require('chai')
-const feathers = require('feathers')
+const feathers = require('@feathersjs/feathers')
 const memory = require('feathers-memory')
 const app = feathers()
 
@@ -13,29 +13,33 @@ app.logger = console
 app.set('clients', {
   ldmp: {
     opts: {
-      host: 'wanda.berkeley.edu', // Requires VPN
-      port: 1024
+      host: 'dendra-k8s-arroyo-willow', // Requires VPN
+      port: 31600
     }
   },
   stan: {
     client: 'test-csi-{key}',
-    cluster: 'test-cluster',
+    cluster: 'stan-cluster',
     opts: {
-      uri: 'http://localhost:4222'
+      // Bonsai test server at home
+      uri: 'http://192.168.1.60:31242'
+      // uri: 'http://localhost:4222'
     }
   }
 })
 
 // Create an in-memory Feathers service for state docs
-app.use('/state/docs', memory({
-  id: '_id',
-  paginate: {
-    default: 200,
-    max: 2000
-  },
-  store: {
-  }
-}))
+app.use(
+  '/state/docs',
+  memory({
+    id: '_id',
+    paginate: {
+      default: 200,
+      max: 2000
+    },
+    store: {}
+  })
+)
 
 global.assert = chai.assert
 global.expect = chai.expect

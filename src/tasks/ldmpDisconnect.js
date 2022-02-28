@@ -3,13 +3,17 @@
  */
 
 module.exports = {
-  guard (m) {
-    return !m.ldmpDisconnectError && !m.ldmpDisconnectReady &&
-      m.private.ldmpClient && m.private.ldmpClient.isConnected &&
-      (m.versionTs > m.ldmpConnectTs)
+  guard(m) {
+    return (
+      !m.ldmpDisconnectError &&
+      !m.ldmpDisconnectReady &&
+      m.private.ldmpClient &&
+      m.private.ldmpClient.isConnected &&
+      m.versionTs > m.ldmpConnectTs
+    )
   },
 
-  execute (m, { logger }) {
+  execute(m, { logger }) {
     logger.info('LDMP client disconnecting')
 
     return m.private.ldmpClient.disconnect().catch(err => {

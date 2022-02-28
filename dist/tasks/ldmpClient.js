@@ -1,93 +1,125 @@
-'use strict';
+"use strict";
 
 /**
  * Create an LDMP client if not defined. Add an event listener for records.
  */
-
 const ldmp = require('@dendra-science/csi-ldmp-client');
+
 const moment = require('moment');
 
-async function processItem({ context, pubSubject, rec, recordNumber, stan }, { logger }) {
+async function processItem({
+  context,
+  pubSubject,
+  rec,
+  recordNumber,
+  stan
+}, {
+  logger
+}) {
   /*
     Prepare outbound message and publish.
    */
-
   const msgStr = JSON.stringify({
     context: Object.assign({}, context, {
       imported_at: new Date()
     }),
     payload: rec
   });
-
   const guid = await new Promise((resolve, reject) => {
     stan.publish(pubSubject, msgStr, (err, guid) => err ? reject(err) : resolve(guid));
   });
-
-  logger.info('Published', { recordNumber, pubSubject, guid });
+  logger.info('Published', {
+    recordNumber,
+    pubSubject,
+    guid
+  });
 }
 
 function handleRecord(rec) {
-  const { logger, m } = this;
+  const {
+    logger,
+    m
+  } = this;
 
   if (!rec) {
     logger.error('Record undefined');
     return;
   }
 
-  const { recordNumber } = rec;
+  const {
+    recordNumber
+  } = rec;
 
   if (typeof recordNumber === 'undefined') {
     logger.error('Record number undefined');
     return;
   }
 
-  logger.info('Record received', { recordNumber });
+  logger.info('Record received', {
+    recordNumber
+  });
 
   if (m.ldmpSpecifyTs !== m.versionTs) {
-    logger.info('Record deferred', { recordNumber });
+    logger.info('Record deferred', {
+      recordNumber
+    });
     return;
   }
 
   try {
     const recordDate = moment(rec.timeString).utcOffset(0, true).utc();
-
     if (!(recordDate && recordDate.isValid())) throw new Error('Invalid time format');
-
     const sourceKey = `${rec.station.replace(/\W/g, '_')}$${rec.table.replace(/\W/g, '_')}`;
     const source = m.sources[sourceKey];
-
     if (!source) throw new Error(`No source found for '${sourceKey}'`);
-
     const ldmpAckDelay = m.state.ldmp_ack_delay | 0;
-    const { ldmpClient, stan } = m.private;
+    const {
+      ldmpClient,
+      stan
+    } = m.private;
     const {
       context,
       pub_to_subject: pubSubject
     } = source;
-
-    processItem({ context, pubSubject, rec, recordNumber, stan }, this).then(() => {
+    processItem({
+      context,
+      pubSubject,
+      rec,
+      recordNumber,
+      stan
+    }, this).then(() => {
       return new Promise(resolve => setTimeout(resolve, ldmpAckDelay));
     }).then(() => ldmpClient.ack()).then(() => {
-      logger.info('Record ack sent', { ldmpAckDelay, recordNumber });
+      logger.info('Record ack sent', {
+        ldmpAckDelay,
+        recordNumber
+      });
 
       if (m.ldmpSpecifyTs !== m.versionTs) {
-        logger.info('Record post-processing deferred', { recordNumber });
+        logger.info('Record post-processing deferred', {
+          recordNumber
+        });
         return;
       }
 
       m.healthCheckTs = new Date().getTime();
-
       if (!m.bookmarks) m.bookmarks = {};
-
       const curVal = m.bookmarks[sourceKey];
       const newVal = recordDate.valueOf();
-
       m.bookmarks[sourceKey] = typeof curVal === 'undefined' ? newVal : Math.max(curVal, newVal);
     }).catch(err => {
-      logger.error('Record processing error', { recordNumber, err, rec });
+      logger.error('Record processing error', {
+        errMessage: err && err.message,
+        recordNumber,
+        rec
+      });
     });
   } catch (err) {
-    logger.error('Record error', { recordNumber, err, rec });
+    logger.error('Record error', {
+      errMessage: err && err.message,
+      recordNumber,
+      rec
+    });
   }
 }
 
@@ -100,11 +132,12 @@ module.exports = {
     const cfg = Object.assign({
       opts: {}
     }, m.$app.get('clients').ldmp, m.props.ldmp);
-
     return new ldmp.LDMPClient(cfg.opts);
   },
 
-  assign(m, res, { logger }) {
+  assign(m, res, {
+    logger
+  }) {
     res.on('closed', () => {
       logger.info('LDMP client closed');
     });
@@ -118,9 +151,8 @@ module.exports = {
       logger,
       m
     }));
-
     m.private.ldmpClient = res;
-
     logger.info('LDMP client ready');
   }
+
 };

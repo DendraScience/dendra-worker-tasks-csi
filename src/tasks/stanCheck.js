@@ -3,12 +3,16 @@
  */
 
 module.exports = {
-  guard (m) {
-    return !m.stanCheckError && !m.stanCheckReady &&
-      m.private.stan && !m.stanConnected
+  guard(m) {
+    return (
+      !m.stanCheckError &&
+      !m.stanCheckReady &&
+      m.private.stan &&
+      !m.stanConnected
+    )
   },
 
-  execute (m, { logger }) {
+  execute(m, { logger }) {
     if (m.private.ldmpClient && m.private.ldmpClient.isConnected) {
       logger.info('LDMP client disconnecting')
 
@@ -21,7 +25,7 @@ module.exports = {
     return true
   },
 
-  assign (m, res, { logger }) {
+  assign(m, res, { logger }) {
     m.private.stan.removeAllListeners()
 
     delete m.private.stan

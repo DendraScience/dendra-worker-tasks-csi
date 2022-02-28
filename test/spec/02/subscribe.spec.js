@@ -29,12 +29,14 @@ describe('Subscribe to imported records', function () {
 
   after(function () {
     return Promise.all([
-      stan ? new Promise((resolve, reject) => {
-        stan.removeAllListeners()
-        stan.once('close', resolve)
-        stan.once('error', reject)
-        stan.close()
-      }) : Promise.resolve()
+      stan
+        ? new Promise((resolve, reject) => {
+            stan.removeAllListeners()
+            stan.once('close', resolve)
+            stan.once('error', reject)
+            stan.close()
+          })
+        : Promise.resolve()
     ])
   })
 
@@ -57,11 +59,14 @@ describe('Subscribe to imported records', function () {
   it('should have imported messages', function () {
     sub.removeAllListeners()
 
-    expect(messages).to.have.nested.property('0.context.org_slug', 'ucnrs')
+    expect(messages).to.have.nested.property('0.context.org_slug', 'cdfw')
     expect(messages).to.have.nested.property('0.context.some_value', 'value')
     expect(messages).to.have.nested.property('0.context.imported_at')
     expect(messages).to.have.nested.property('0.payload.recordNumber')
-    expect(messages).to.have.nested.property('0.payload.station', 'ucac_angelo')
-    expect(messages).to.have.nested.property('0.payload.table', 'TenMin')
+    expect(messages).to.have.nested.property(
+      '0.payload.station',
+      'UpperButteBasin'
+    )
+    expect(messages).to.have.nested.property('0.payload.table', 'Min10')
   })
 })

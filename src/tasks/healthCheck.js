@@ -3,19 +3,27 @@
  */
 
 module.exports = {
-  guard (m) {
-    return !m.healthCheckError && !m.healthCheckReady &&
-      m.private.ldmpClient && m.private.ldmpClient.isConnected &&
-      (m.ldmpSpecifyTs === m.versionTs)
+  guard(m) {
+    return (
+      !m.healthCheckError &&
+      !m.healthCheckReady &&
+      m.private.ldmpClient &&
+      m.private.ldmpClient.isConnected &&
+      m.ldmpSpecifyTs === m.versionTs
+    )
   },
 
-  execute (m, { logger }) {
-    const ts = (new Date()).getTime()
+  execute(m, { logger }) {
+    const ts = new Date().getTime()
     const threshold = m.state.health_check_threshold
 
     logger.info('Health check started')
 
-    if (threshold && m.healthCheckTs && ((ts - m.healthCheckTs) > threshold * 1000)) {
+    if (
+      threshold &&
+      m.healthCheckTs &&
+      ts - m.healthCheckTs > threshold * 1000
+    ) {
       logger.error('Health check threshold exceeded')
       logger.info('LDMP client disconnecting')
 

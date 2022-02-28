@@ -1,19 +1,19 @@
-'use strict';
+"use strict";
 
 /**
  * Prepare LDMP client spec in the model if not defined, and after sources are ready.
  */
-
 const moment = require('moment');
 
 const AT_TIME_FORMAT = 'YYYY MM DD HH:mm:ss.SS';
-
 module.exports = {
   guard(m) {
     return !m.ldmpSpecError && m.sourcesTs === m.versionTs && m.ldmpSpecTs !== m.versionTs;
   },
 
-  async execute(m, { logger }) {
+  async execute(m, {
+    logger
+  }) {
     const docId = `${m.key}-bookmarks`;
     let doc;
 
@@ -28,7 +28,6 @@ module.exports = {
     }
 
     const now = moment().utc();
-
     return m.sourceKeys.map(sourceKey => {
       const {
         backfill,
@@ -36,12 +35,10 @@ module.exports = {
         station,
         table
       } = m.sources[sourceKey];
-
       const spec = Object.assign({
         station,
         table
       }, options);
-
       /*
         Determine start_option if missing: use bookmark, backfill option, then oldest.
        */
@@ -68,10 +65,12 @@ module.exports = {
     });
   },
 
-  assign(m, res, { logger }) {
+  assign(m, res, {
+    logger
+  }) {
     m.ldmpSpec = res;
     m.ldmpSpecTs = m.versionTs;
-
     logger.info('LDMP client spec ready', res);
   }
+
 };

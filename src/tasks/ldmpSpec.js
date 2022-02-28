@@ -7,13 +7,15 @@ const moment = require('moment')
 const AT_TIME_FORMAT = 'YYYY MM DD HH:mm:ss.SS'
 
 module.exports = {
-  guard (m) {
-    return !m.ldmpSpecError &&
-      (m.sourcesTs === m.versionTs) &&
-      (m.ldmpSpecTs !== m.versionTs)
+  guard(m) {
+    return (
+      !m.ldmpSpecError &&
+      m.sourcesTs === m.versionTs &&
+      m.ldmpSpecTs !== m.versionTs
+    )
   },
 
-  async execute (m, { logger }) {
+  async execute(m, { logger }) {
     const docId = `${m.key}-bookmarks`
     let doc
 
@@ -37,10 +39,13 @@ module.exports = {
         table
       } = m.sources[sourceKey]
 
-      const spec = Object.assign({
-        station,
-        table
-      }, options)
+      const spec = Object.assign(
+        {
+          station,
+          table
+        },
+        options
+      )
 
       /*
         Determine start_option if missing: use bookmark, backfill option, then oldest.
@@ -55,7 +60,7 @@ module.exports = {
         }
       }
 
-      if (!spec.start_option && (typeof backfill === 'object')) {
+      if (!spec.start_option && typeof backfill === 'object') {
         spec.start_option = 'at-time'
         spec.time_stamp = now.clone().subtract(backfill).format(AT_TIME_FORMAT)
       }
@@ -68,7 +73,7 @@ module.exports = {
     })
   },
 
-  assign (m, res, { logger }) {
+  assign(m, res, { logger }) {
     m.ldmpSpec = res
     m.ldmpSpecTs = m.versionTs
 

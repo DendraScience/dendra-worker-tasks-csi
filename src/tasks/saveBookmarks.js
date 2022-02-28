@@ -3,14 +3,18 @@
  */
 
 module.exports = {
-  guard (m) {
-    return !m.saveBookmarksError && !m.saveBookmarksReady &&
-      m.private.ldmpClient && m.private.ldmpClient.isConnected &&
-      (m.ldmpSpecifyTs === m.versionTs) &&
+  guard(m) {
+    return (
+      !m.saveBookmarksError &&
+      !m.saveBookmarksReady &&
+      m.private.ldmpClient &&
+      m.private.ldmpClient.isConnected &&
+      m.ldmpSpecifyTs === m.versionTs &&
       m.bookmarks
+    )
   },
 
-  async execute (m, { logger }) {
+  async execute(m, { logger }) {
     const docId = `${m.key}-bookmarks`
     let doc
 
@@ -73,7 +77,7 @@ module.exports = {
     return doc
   },
 
-  assign (m, res, { logger }) {
+  assign(m, res, { logger }) {
     logger.info(`Saved (${res.bookmarks.length}) bookmark(s)`)
   }
 }
